@@ -55,7 +55,7 @@ Todos os 5 participam da **descoberta** (§6.15) e do **refinamento de toda task
 
 ## Skills de apoio
 
-**Todas vendorizadas no repositório** (`.claude/skills/`) — clonou, tem tudo: `backend-patterns`, `postgres-patterns`, `docker-patterns`, `database-migrations`, `security-review`, `benchmark`, `browser-qa`, `design-system`, `frontend-patterns`, `jpa-patterns`, `tdd-workflow`, `e2e-testing`, `github-ops`, `git-workflow`, `architecture-decision-records`, `coding-standards`, `api-design`, `error-handling`, `deployment-patterns`, `security-scan`. Origem e créditos em `lib.md`; mapa skill×agente em `roles.md` §4.2. Única exceção: `ui-ux-pro-max` (UI/UX) é plugin, já declarado em `.claude/settings.json` — instala ao confiar no projeto.
+**Todas vendorizadas no repositório** (`.claude/skills/`) — clonou, tem tudo, incluindo 9 skills de Go adicionadas após a definição da stack (2026-07-07). A lista canônica com o mapa skill×agente vive em **`roles.md` §4.2** (fonte única — este README não a duplica); origem e créditos de cada vendorização em `lib.md`. Única exceção: `ui-ux-pro-max` (UI/UX) é plugin, já declarado em `.claude/settings.json` — instala ao confiar no projeto.
 
 ## Hooks de sessão (Obsidian)
 

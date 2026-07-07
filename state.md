@@ -23,6 +23,7 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Pendências técnicas
 
+- **Hardening do hook `obsidian-session-end.sh`** (achado da auditoria de 2026-07-07, severidade média, não bloqueante): trocar `--dangerously-skip-permissions` por allowlist escopada (`--allowedTools "Read Write Edit Glob Grep"`) e mover o log de `/tmp` para diretório do usuário; junto, hardening da config `.claude/` (permissions block no settings.json) — candidata a task junto com o enforcement do gate §6.4.5.
 - **Item 0 do roadmap (pré-bootstrap):** mover repo p/ WSL ext4; criar conta Oracle PAYG + VM A1 (semana 1 — capacidade é loteria); remover `pom.xml` placeholder na task de bootstrap. ~~Criar repo GitHub público e primeiro push~~ → feito em 2026-07-07 (auditoria aprovada; secret scanning + push protection habilitados na criação).
 - **Rotacionar a CONTEXT7_API_KEY** (exposta no chat da sessão de descoberta — severidade baixa; dashboard context7.com) e atualizar `.env` + `.claude/settings.local.json`.
 - Domínio para e-mail transacional (Resend/Brevo exigem domínio verificado) — pendente; demo nasce em subdomínio gratuito.
