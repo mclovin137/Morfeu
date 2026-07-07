@@ -1,19 +1,56 @@
-# Roadmap
+# Roadmap — Morfeu
 
-Visão geral das entregas do projeto. Cada item vira uma ou mais tasks pequenas via skill `criar-task` (fluxo completo em `roles.md` §2).
+> Gerado pela descoberta (`iniciar-projeto`, roles.md §6.15) em 2026-07-06, a partir do parecer de viabilidade do backend-dev e das decisões do confronto multiagente (registradas em `doc.md` §10). Cada épico vira uma ou mais tasks ≤ 30 arquivos via `criar-task` (fluxo completo em `roles.md` §2).
 
 ## Visão
 
-Projeto Morfeu — visão, escopo e entregas serão definidos pela **descoberta** (`iniciar-projeto`, roles.md §6.15), que substitui este placeholder pelo roadmap real.
+Venda de ingressos de cinema online (um cinema; cartaz → sessão → mapa de assentos → checkout Stripe sandbox → ingresso por e-mail) com backoffice mínimo do operador. Projeto de portfólio/aprendizado: Go + Echo, sqlc + pgx, PostgreSQL, Redis (cache), RabbitMQ (saga do checkout), React + Vite, VM Oracle Always Free com observabilidade self-hosted e SLOs validados por teste de carga k6. Detalhes: `doc.md`.
+
+**Calibração declarada:** dev solo · 10–12h/semana · **horizonte honesto: 7–9 meses até o MVP** (cenário de 6 meses exigiria ~15h/sem constantes) · sem prazo fixo — qualidade > data.
+
+**Metodologia:** descoberta → roadmap → task → refinamento (5 agentes) → PRD → implementação → auditoria → push → PR → CI/CD. Princípios do sequenciamento: deploy público na semana 3–4 (de-risker máximo: VM Oracle, pipeline ARM e CI/CD só se provam em produção); fatias verticais; blocos de trabalho por linguagem (Go × React) para reduzir troca de contexto de dev solo.
+
+## Marcos
+
+| Marco | Prova | Épicos |
+|---|---|---|
+| **M1 — URL pública viva** | walking skeleton deployado com TLS, CI/CD ARM e observabilidade base | E0 |
+| **M2 — Operador importa filme real** | TMDB → catálogo no backoffice | E1–E2 |
+| **M3 — Dois navegadores disputam o mesmo assento** | a demo mais forte do portfólio (mapa interativo + trava no PG) | E3–E5 |
+| **M4 — Compra completa ponta a ponta** | cartaz → assento → Stripe → ingresso no e-mail (saga + compensações) | E6–E8 |
+| **M5 — SLO validado sob carga** | p95 < 300 ms @ 300 req/s leitura, erro < 1%, invariante de assento pós-carga | E9–E12 |
 
 ## Itens
 
-| # | Item | Prioridade | Status | Riscos/Dependências | Tasks |
+| # | Épico | Prioridade | Status | Riscos/Dependências | Tasks |
 |---|------|-----------|--------|---------------------|-------|
-| 1 | Descoberta do projeto via `iniciar-projeto` (escopo, requisitos, volumetria, stack, observabilidade — gera `doc.md`, `lib.md` e substitui este roadmap) | alta | pendente | entrevista com o usuário; possíveis ADRs | — |
+| 0 | **Pré-bootstrap (ambiente)**: mover repo p/ WSL ext4 + IDE modo WSL; criar conta Oracle **PAYG** e provisionar VM A1 (capacidade é loteria — semana 1); criar repo GitHub **público** com secret scanning + push protection; remover `pom.xml` placeholder | alta | pendente | decisões do confronto; sem código envolvido | — |
+| 1 | **E0 — Walking skeleton** (3–4 tasks): (a) app Go skeleton + compose core (PG/Redis) + migrations golang-migrate + `GET /filmes` seedado c/ cache read-through; (b) outbox + RabbitMQ + `-mode=worker` consumidor idempotente; (c) CI/CD completo (lint→vet→test -race→govulncheck→GHCR arm64→deploy SSH) + Caddy/TLS + shell da SPA; (d) observabilidade base (OTel métricas + Prometheus + Grafana provisionado + logs JSON) | alta | pendente | item 0; capacidade A1; **M1** | — |
+| 2 | **E1 — Identidade** (2 tasks): registro/login Argon2id + JWT + RBAC + seed operador; refresh rotativo c/ detecção de reuso + deleção de conta (pseudonimização) | alta | pendente | E0; desenho security inegociável (doc.md §14.4) | — |
+| 3 | **E2 — Catálogo + TMDB** (1–2 tasks): CRUD filmes + import TMDB no backoffice; consolida o padrão sqlc+handler+teste; **M2** | alta | pendente | E0–E1 | — |
+| 4 | **E3 — Sessões e salas** (2 tasks): domínio + regra de não-conflito (intervalo de limpeza definido no refinamento); telas mínimas do operador | alta | pendente | E2 | — |
+| 5 | **E4 — Reserva (backend)** (2 tasks): hold com partial unique index + `expires_at` (TTL 10 min + 1 extensão) + sweeper; endpoint do mapa + cache Redis; teste de corrida canônico (goroutines + barreira + invariante) | alta | pendente | E3; fluxo crítico 2 | — |
+| 6 | **E5 — SPA cliente, parte 1** (2–3 tasks): cartaz → sessão → **mapa de assentos interativo** (polling 3–5s, sem WebSocket); componente isolado com dados fake primeiro; **M3** | alta | pendente | E4; bloco React | — |
+| 7 | **E6 — Saga do checkout** (4 tasks): pedido + máquina de estados; Stripe + webhook assinado/idempotente (Stripe CLI no dev); orquestração + compensações (e-mail pós-pivô); DLQ + comando de replay + hardening do worker | alta | pendente | E4; maior bloco (XL) — construir em camadas: máquina de estados síncrona primeiro | — |
+| 8 | **E7 — Notificação: e-mail + QR** (1–2 tasks): consumidor, template, token opaco ≥128 bits, Resend/Brevo | alta | pendente | E6; domínio verificado p/ e-mail (pendência) | — |
+| 9 | **E8 — SPA checkout + convidado/conta** (2 tasks): fluxo único (pedido sempre com e-mail; conta = anexo opcional); consulta de pedido convidado (e-mail + código); re-auth silenciosa via refresh cookie | alta | pendente | E6–E7; bloco React | — |
+| 10 | **E9 — Backoffice restante** (2 tasks): consulta de pedidos, cancelamento/estorno (janela 2h), trilha de auditoria do operador | média | pendente | E6; manter mínimo — backoffice é sumidouro de horas | — |
+| 11 | **E10 — Observabilidade completa** (2 tasks): **Tempo entra aqui** (traces da saga, sampling 10%+erros), dashboards de negócio (funil, compensações, ocupação), alertas Discord + watchdog externo | média | pendente | E6 (a saga é o que dá valor ao tracing) | — |
+| 12 | **E11 — Hardening + backup** (1–2 tasks): NSG/portas, senhas de infra, Grafana com senha, pg_dump noturno cifrado → Object Storage + restore validado, `disk > 80%` alerta nº 1 | alta | pendente | E0 (parcial no skeleton); doc.md §14.5 bloqueia deploy público de produção | — |
+| 13 | **E12 — Teste de carga k6** (1–2 tasks): modo load-test (fakes de gateway/e-mail), baseline → ramp → SLO @ 300 req/s → soak → cenário de disputa; gerador fora da VM; p95 server-side; **M5** | alta | pendente | E6, E10; nightly/manual, nunca gate de PR | — |
+| 14 | **Pós-MVP (fase 2)**: check-in QR na entrada (validação single-use pelo operador), tradução EN, relatórios do operador, lembrete de sessão, PIX/Mercado Pago, mobile, 2FA operador, CAPTCHA condicional | baixa | backlog | MVP entregue | — |
+
+## Riscos do roadmap (top 5, do parecer de viabilidade)
+
+1. **"Escrever Java em Go"** — wiring manual no `main`, interfaces só com segundo implementador real, Context7 antes de qualquer API de lib.
+2. **Saga superdimensionada no imaginário** — com e-mail pós-pivô, a saga real é hold→cobrança→emissão com **uma** compensação verdadeira; não deixar a palavra inflar PRDs.
+3. **Mapa de assentos no React** — grade simples do template JSON, nunca editor visual; polling, não WebSocket.
+4. **Backoffice como sumidouro de horas** — escopo mínimo vigiado a cada task (nenhum parecer o dimensionou grande, e é onde projetos solo afundam).
+5. **Capacidade Oracle A1** — VM criada na semana 1; "VM descartável, tudo reconstituível por código".
 
 ## Como usar
 
-1. Rode a descoberta (item 1) — ela gera o roadmap real.
-2. Escolha o item de maior prioridade com dependências resolvidas e rode `criar-task`.
-3. Siga o fluxo: task → refinamento → PRD → implementação → auditoria → push → PR → CI/CD.
+1. Execute o item 0 (pré-bootstrap — sem código, sem PRD; só ambiente e contas).
+2. `criar-task` sobre a primeira fatia do E0 → refinamento (5 agentes) → PRD → implementação → auditoria → push → PR.
+3. Gate de cobertura 80%/pacote de domínio ativa a partir do E2 (decisão backend-dev); k6 nightly/manual a partir do E12.
+4. Candidatas a ADR do `doc.md` §11: propor a criação (com autorização explícita) no refinamento da task que materializa cada decisão.

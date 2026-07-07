@@ -38,6 +38,11 @@ build/
 ### Mac OS ###
 .DS_Store
 
+### Segredos (roles.md §6.6) ###
+.env
+.env.*
+!.env.example
+
 ### Claude Code ###
 .claude/settings.local.json
 ### IntelliJ (pasta inteira — decisão 2026-07-04) ###

@@ -4,4 +4,8 @@
 
 ## Task atual
 
-**Nenhuma task em andamento.** O projeto aguarda a descoberta (`/iniciar-projeto`). A primeira task, criada via `criar-task` após o roadmap, preenche este arquivo com: objetivo, escopo, fora de escopo, branch, PRD, tabela de arquivos, dependências, plano de testes, pendências e riscos.
+**Nenhuma task em andamento.** Descoberta e ADRs 0001–0006 concluídos (bootstrap de governança, pré-task). A primeira task, criada via `criar-task` sobre o item 0/E0 do roadmap, preenche este arquivo com: objetivo, escopo, fora de escopo, branch, PRD, tabela de arquivos, dependências, plano de testes, pendências e riscos.
+
+## Auditorias
+
+- **2026-07-07 — APROVADA** (bootstrap de governança, pré-push inicial): 13 itens verificados; security ✅ (árvore publicável + histórico sem secrets; CVEs do lib.md revalidadas no OSV), qa ✅ (itens 6/7 N/A-justificados — diff 100% documentação; consistência ADR 0006 ↔ doc.md ↔ roadmap confirmada; divergência lib.md "3–5→2–4 jornadas" corrigida no ato).

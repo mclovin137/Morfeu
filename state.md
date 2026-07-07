@@ -4,37 +4,46 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Estado atual
 
-Projeto **Morfeu** recém-criado a partir do template Tllm (commit `2a86322`, 2026-07-04). **Aguardando descoberta** (`iniciar-projeto`, roles.md §6.15) — escopo, stack, roadmap real, `doc.md` e `lib.md` nascem dela.
+**Descoberta concluída (2026-07-06).** Morfeu definido: **venda de ingressos de cinema online** (portfólio/aprendizado, dev solo, 10–12h/sem, horizonte 7–9 meses). Stack: Go + Echo, sqlc + pgx/v5, PostgreSQL (fonte da verdade, inclusive trava de assento), Redis (cache), RabbitMQ (saga do checkout), React + Vite, VM Oracle Always Free (PAYG), observabilidade self-hosted, k6. Artefatos gerados: `doc.md` (mini-UML), `lib.md` (stack `planejada`, validada Context7/OSV), `docs/roadmap.md` (E0–E12, marcos M1–M5).
 
-- **Última task concluída:** nenhuma
-- **Task atual:** nenhuma
+- **Última task concluída:** nenhuma (descoberta não é task)
+- **Task atual:** nenhuma — próximo passo é o item 0 do roadmap (pré-bootstrap) e `criar-task` sobre o E0
 - **Branch atual:** `main`
 - **PRD atual:** nenhum
-- **ADRs ativos:** nenhum
+- **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — todos aceitos em 2026-07-07 com autorização explícita. Candidatas restantes (trava de assento, RabbitMQ, saga) nascem nos refinamentos E4/E6.
 
 ## Últimas decisões relevantes
 
-- 2026-07-04 — Projeto criado a partir do template Tllm (governança multiagente completa herdada; histórico do template fica no repo de origem).
+- 2026-07-07 — **6 ADRs criados** após confronto multiagente sobre a proposta do usuário (Object Calisthenics + Strategy/Factory/State + Controller→Actor→Resolver→Service→DAO + DDD crítico + Playwright/base própria). Usuário aceitou as 4 recomendações de consenso: camadas mapeadas idiomaticamente (handler→service→sqlc; Actor=orquestrador da saga; Resolver=composition root; DAO=sqlc+ports), calisthenics adaptado via `.golangci.yml`, **PT no domínio + EN técnico**, Playwright como topo da pirâmide com bases descartáveis. Consulta CAP do usuário respondida: PostgreSQL confirmado (domínio CP; cartaz em cache é o lado eventual deliberado).
+- 2026-07-06 — **Descoberta completa** (entrevista A–I + 5 pareceres + confronto). Decisões-chave e trade-offs aceitos registrados em `doc.md` §10; destaques: trava de assento no **PG** (usuário reverteu Redis após consenso 4/4), **backup diário revertido** (era "sem backup"), auditoria enxuta (era "completa"), fluxo único convidado+conta, e-mail pós-pivô na saga, circuit breaker só no gateway, **Stripe** sandbox, repo **público**, TTL da trava 10 min + 1 extensão, cancelamento até 2h antes, check-in QR fora do MVP, Tempo entra com a saga, alertas via **Discord**, repo será movido p/ **WSL ext4**, conta Oracle nova em **PAYG**.
+- 2026-07-04 — Config sensível: `.env` (CONTEXT7_API_KEY + Obsidian) gitignored; `.env.example` versionado; `.mcp.json` com `${CONTEXT7_API_KEY:-}`; chave também em `.claude/settings.local.json`.
+- 2026-07-04 — Projeto criado a partir do template Tllm (governança multiagente completa herdada).
 
 ## Pendências técnicas
 
-- Rodar a descoberta (`/iniciar-projeto`) — define nome/escopo/stack e gera `doc.md`, `lib.md` e `docs/roadmap.md` reais.
-- Criar remote no GitHub e fazer o primeiro push (após a descoberta, com auditoria quando houver código).
-- Preencher os steps reais do `.github/workflows/ci.yml` quando a stack existir.
+- **Item 0 do roadmap (pré-bootstrap):** mover repo p/ WSL ext4; criar conta Oracle PAYG + VM A1 (semana 1 — capacidade é loteria); remover `pom.xml` placeholder na task de bootstrap. ~~Criar repo GitHub público e primeiro push~~ → feito em 2026-07-07 (auditoria aprovada; secret scanning + push protection habilitados na criação).
+- **Rotacionar a CONTEXT7_API_KEY** (exposta no chat da sessão de descoberta — severidade baixa; dashboard context7.com) e atualizar `.env` + `.claude/settings.local.json`.
+- Domínio para e-mail transacional (Resend/Brevo exigem domínio verificado) — pendente; demo nasce em subdomínio gratuito.
+- Preencher steps reais do `.github/workflows/ci.yml` no E0.
+- Definições que ficaram para o refinamento: intervalo de limpeza entre sessões; alvo do SLI de checkout fim-a-fim (pós-baseline); detalhes do template JSON de sala.
 
 ## Riscos conhecidos
 
-- Regras de governança dependem de disciplina convencional (sem enforcement técnico por hooks ainda).
-- Repo em `/mnt/c` (WSL): git mais lento; `core.filemode=false` configurado.
+- Governança convencional (sem enforcement técnico por hooks).
+- Top 5 riscos do roadmap em `docs/roadmap.md` (Java-em-Go, saga inflada, mapa de assentos, backoffice sumidouro, capacidade A1).
+- Repo ainda em `/mnt/c` até o item 0 (I/O lento em builds Go/Vite).
 
 ## Próximos passos
 
-1. `/iniciar-projeto` — descoberta completa (entrevista + confronto multiagente).
-2. Revisar e aprovar `doc.md`, `lib.md` e `docs/roadmap.md` gerados.
-3. `/criar-task` sobre o item 1 do roadmap.
+1. Item 0 do roadmap — pré-bootstrap de ambiente (WSL ext4, Oracle, GitHub público).
+2. `/criar-task` sobre a fatia (a) do E0 (walking skeleton) → `/refinar-task` → `/criar-prd` → implementação.
+3. No refinamento do E0: propor criação dos ADRs candidatos 1–2 (stack Go+Echo; sqlc+pgx) com autorização do usuário.
 
 ## Histórico resumido
 
 | Data | Evento |
 |------|--------|
+| 2026-07-07 | **ADRs 0001–0006 criados** (stack, dados, camadas, código, DDD/patterns, testes) após confronto multiagente da proposta de padrões do usuário. |
+| 2026-07-06 | **Descoberta concluída**: entrevista A–I, 5 pareceres, confronto (14 decisões), `doc.md` + `lib.md` + `docs/roadmap.md` gerados. |
+| 2026-07-04 | Config: `.env`/`.env.example`/`.mcp.json` (Context7 key + Obsidian); chave protegida do git. |
 | 2026-07-04 | Projeto Morfeu criado a partir do template Tllm `2a86322` (28 skills, 5 agentes, hooks de sessão Obsidian, arquivos de controle). |

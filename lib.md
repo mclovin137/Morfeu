@@ -4,15 +4,50 @@ Toda dependência do projeto é registrada aqui **antes** de entrar, com justifi
 
 ## Dependências de runtime
 
+> Stack definida na descoberta de 2026-07-06 (ver `doc.md`). Todas **`planejada`** até entrarem no build (roles.md §6.15.5). Versões mínimas exigidas pelo parecer de security (OSV.dev consultado em 2026-07-04); `govulncheck` no CI manterá a verificação contínua.
+
 | Nome | Versão | Finalidade | Onde é usada | Justificativa | Alternativas consideradas | Riscos | CVEs conhecidas | Última validação | Docs |
 |------|--------|-----------|--------------|---------------|---------------------------|--------|-----------------|------------------|------|
-| — | | *nenhuma ainda — o scaffold não tem dependências* | | | | | | | |
+| Go | 1.x estável (planejada) | linguagem do backend | todo o backend | escolha do usuário (aprendizado); cross-compile ARM trivial (`CGO_ENABLED=0`) | Java/Spring (ambiente anterior), Node/TS | rampa de aprendizado vindo de JVM | — | 2026-07-06 (Context7) | https://go.dev |
+| labstack/echo/v4 | **≥ 4.15.0** (planejada) | framework HTTP | módulos de API | escolha do usuário; ativo, middleware maduro (JWT, rate limit) | Gin, chi, stdlib | — | CVE-2022-40083 corrigida em 4.9.0; nada aberto | 2026-07-04 (Context7 `/labstack/echo` + OSV) | https://echo.labstack.com |
+| jackc/pgx/v5 | **≥ 5.9.2** (planejada) | driver PostgreSQL + pool | plataforma/db | performance, features PG nativas, `otelpgx` p/ OTel | database/sql+lib/pq | — | CVE-2026-33815/33816 corrigidas em 5.9.0; CVE-2026-41889 em 5.9.2 | 2026-07-04 (Context7 `/jackc/pgx` + OSV) | https://github.com/jackc/pgx |
+| sqlc | última estável (dev tool; planejada) | codegen type-safe de SQL | camada de dados | SQL explícito (aprendizado de PG), zero custo de runtime, `WithTx` encaixa na saga | GORM (reflection/SQL implícito — descartado), ent (conflita com migration-first §6.10), pgx puro (boilerplate) | passo de codegen no build | nenhuma | 2026-07-04 (Context7) | https://sqlc.dev |
+| golang-jwt/jwt/v5 (+ labstack/echo-jwt) | **≥ 5.2.2** (planejada) | tokens de acesso | identidade | padrão de facto; echo-jwt integra middleware | paseto | — | CVE-2025-30204 corrigida em 5.2.2 | 2026-07-04 (OSV) | https://github.com/golang-jwt/jwt |
+| golang.org/x/crypto (argon2) | **≥ 0.52.0** (planejada) | hash de senha Argon2id | identidade | recomendação OWASP; CVEs do módulo concentradas em ssh/agent, não afetam argon2 | bcrypt (inferior em hardware moderno) | — | nenhuma em argon2 | 2026-07-04 (OSV) | https://pkg.go.dev/golang.org/x/crypto |
+| redis/go-redis/v9 | **≥ 9.7.3** (planejada) | cliente Redis (cache) | plataforma/cache | cache de cartaz/mapa; Redis NÃO guarda estado transacional (doc.md §4) | rueidis | — | CVE-2025-29923 corrigida em 9.7.3 | 2026-07-04 (OSV) | https://github.com/redis/go-redis |
+| rabbitmq/amqp091-go | última estável (planejada) | cliente RabbitMQ | outbox relay + worker | cliente oficial mantido pela equipe RabbitMQ | streadway/amqp (abandonado) | — | nenhuma | 2026-07-04 (OSV) | https://github.com/rabbitmq/amqp091-go |
+| go.opentelemetry.io/otel (+ otelecho, otelpgx) | **≥ 1.41.0** (planejada) | instrumentação (traces/métricas) | plataforma/otel, desde o dia 1 (sampling 10% + 100% erros) | padrão aberto; contexto propagado no RabbitMQ (saga rastreável) | — | cardinalidade de métricas (regra no doc.md §13) | CVE-2026-29181 corrigida em 1.41.0; otelecho contrib ≥ 0.44.0 | 2026-07-04 (OSV) | https://opentelemetry.io |
+| golang-migrate/migrate | **v4 (v4.18.3 atual)** (planejada) | migrations versionadas em SQL | plataforma/db + skill `criar-migration` | simples, SQL puro, CLI+lib, integra com §6.10 | goose, atlas, sql-migrate | — | nenhuma | 2026-07-06 (Context7 `/golang-migrate/migrate`) | https://github.com/golang-migrate/migrate |
+| React + Vite | últimas estáveis (planejada) | SPA do cliente e backoffice | frontend | mapa de assentos é UI rica; usuário já domina React | Next.js (SSR desnecessário + servidor Node a mais), htmx | — | — | 2026-07-06 | https://react.dev · https://vite.dev |
+
+### Serviços/infra (planejados)
+
+| Nome | Finalidade | Free tier / limite | Validação |
+|------|-----------|--------------------|-----------|
+| PostgreSQL (imagem oficial) | banco principal, fonte da verdade | self-hosted na VM | 2026-07-06 |
+| Redis (imagem oficial) | cache; `maxmemory 512MB` | self-hosted na VM | 2026-07-06 |
+| RabbitMQ (imagem oficial, multi-arch) | mensageria; `vm_memory_high_watermark` absoluto ~768MB + `disk_free_limit` obrigatórios | self-hosted na VM | 2026-07-04 (SRE) |
+| Prometheus · Grafana · Loki · Tempo · **Grafana Alloy** | observabilidade self-hosted (Alloy substitui Promtail, deprecado) | self-hosted; retenção por tamanho | 2026-07-04 (Context7 `/grafana/loki`) |
+| Oracle Cloud Always Free (VM A1 4 OCPU/24GB + Object Storage) | runtime prod-demo + backups | conta PAYG com budget alert (elimina reclaim por ociosidade) | 2026-07-04 (SRE) |
+| Stripe (test mode) | gateway de pagamento sandbox | free; ~25 req/s em test mode → modo load-test com fake | 2026-07-04 |
+| TMDB API | dados de filmes | free não-comercial ~50 req/s; atribuição obrigatória | 2026-07-04 |
+| Resend ou Brevo | e-mail transacional | 100/dia (Resend) · 300/dia (Brevo); exige domínio verificado | 2026-07-04 |
+| Caddy | reverse proxy + TLS automático (Let's Encrypt) + same-origin SPA/API | self-hosted | 2026-07-04 (security) |
+| UptimeRobot / healthchecks.io | watchdog externo (alerta de VM morta) | free | 2026-07-04 (SRE) |
+| Discord | canal de alertas (Grafana Alerting via webhook) | free | 2026-07-06 (confronto) |
 
 ## Ferramentas de desenvolvimento
 
 | Nome | Versão | Finalidade | Onde é usada | Justificativa | Alternativas consideradas | Riscos | CVEs conhecidas | Última validação | Docs |
 |------|--------|-----------|--------------|---------------|---------------------------|--------|-----------------|------------------|------|
-| @upstash/context7-mcp | latest (via npx) | servidor MCP de documentação atualizada de bibliotecas | `.mcp.json` (sessões Claude Code) | reduz decisões baseadas em docs desatualizadas (roles.md §6.12) | consulta manual a docs (mais lenta, sujeita a versão errada) | execução via npx baixa pacote na 1ª execução (exige rede) | nenhuma conhecida | 2026-07-03 | https://github.com/upstash/context7 |
+| @upstash/context7-mcp | latest (via npx) | servidor MCP de documentação atualizada de bibliotecas | `.mcp.json` (sessões Claude Code) | reduz decisões baseadas em docs desatualizadas (roles.md §6.12) | consulta manual a docs (mais lenta, sujeita a versão errada) | execução via npx baixa pacote na 1ª execução (exige rede) | nenhuma conhecida | 2026-07-04 | https://github.com/upstash/context7 |
+| k6 (Grafana) | última estável (planejada) | teste de carga da API (SLO p95/erro via thresholds) | validação de SLO (gerador FORA da VM) + rodada periódica; **não é gate de PR** | thresholds nativos casam com o SLO; skill `benchmark` rege a metodologia, k6 é o motor | JMeter, Gatling, vegeta | — | nenhuma | 2026-07-04 (Context7 `/grafana/k6-docs`) | https://k6.io |
+| testcontainers-go | última estável (planejada) | testes de integração com PG/Redis/RabbitMQ reais | suíte de integração (container por suíte, dados por UUID, `-race`) | módulos oficiais p/ os três serviços; roda no Actions | mocks (não validam SQL/AMQP), docker-compose manual em teste | startup do RabbitMQ é caro (mitigado: container por suíte) | nenhuma | 2026-07-04 (QA) | https://golang.testcontainers.org |
+| golangci-lint + govulncheck | últimas estáveis (planejada) | lint + verificação contínua de CVEs no CI | GitHub Actions | govulncheck é obrigatório (parecer security; §6.6.3) | — | — | — | 2026-07-04 | https://golangci-lint.run · https://go.dev/security/vuln |
+| Playwright | última estável (planejada) | E2E das 2–4 jornadas críticas do SPA (ADR 0006) | suíte E2E (Page Object Model, seletores por role/test-id) | skill `e2e-testing` vendorizada; imune a i18n com test-ids | Cypress | — | — | 2026-07-07 (ADR 0006) | https://playwright.dev |
+| Stripe CLI | última estável (planejada) | forward de webhook p/ localhost no dev | dev local (`stripe listen`) | elimina túnel (ngrok/cloudflared) no fluxo diário — critério da escolha do gateway | ngrok/cloudflared (necessários se fosse Mercado Pago) | — | — | 2026-07-06 (confronto) | https://docs.stripe.com/stripe-cli |
+
+**Autenticação Context7 (2026-07-04):** o servidor usa a env var `CONTEXT7_API_KEY` (confirmado na doc oficial; o flag `--api-key` teria precedência). A chave vive no `.env` (fonte da verdade, gitignored) e é injetada na sessão do Claude Code por `.claude/settings.local.json` → `env` (também gitignored), pois o Claude Code não carrega `.env` automaticamente; o `.mcp.json` commitado referencia apenas `${CONTEXT7_API_KEY:-}` (sem chave, cai no modo anônimo com rate limit). Ao trocar a chave, atualizar os dois arquivos locais.
 
 ## Skills vendorizadas (não são dependências de código)
 
