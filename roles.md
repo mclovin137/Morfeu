@@ -72,12 +72,14 @@ Definidos em `.claude/agents/`. Invocação: pedir explicitamente ("consulte o a
 
 | Agente | Skills de apoio |
 |---|---|
-| Arquiteto | `backend-patterns`, `design-system`, `architecture-decision-records`ᵛ, `api-design`ᵛ, `coding-standards`ᵛ |
-| SRE/DevOps | `docker-patterns`, `benchmark`, `postgres-patterns`, `github-ops`ᵛ (CI/releases), `deployment-patterns`ᵛ, `error-handling`ᵛ (resiliência) |
-| Security | `security-review`, `security-scan`ᵛ (audita a própria config `.claude/` — rodar após vendorizar skills ou alterar agents/hooks/MCP) |
-| QA | `tdd-workflow`ᵛ, `e2e-testing`ᵛ, `browser-qa`, `benchmark`, `coding-standards`ᵛ (item 13 da auditoria) |
-| Backend Dev | `backend-patterns`, `postgres-patterns`, `tdd-workflow`ᵛ, `database-migrations`, `error-handling`ᵛ, `api-design`ᵛ, `coding-standards`ᵛ, `ui-ux-pro-max` (tarefas de UI) |
+| Arquiteto | `backend-patterns`, `design-system`, `architecture-decision-records`ᵛ, `api-design`ᵛ, `coding-standards`ᵛ, `golang-project-layout`ᵍ, `golang-context`ᵍ |
+| SRE/DevOps | `docker-patterns`, `benchmark`, `postgres-patterns`, `github-ops`ᵛ (CI/releases), `deployment-patterns`ᵛ, `error-handling`ᵛ (resiliência), `golang-observability-opentelemetry`ᵍ |
+| Security | `security-review`, `security-scan`ᵛ (audita a própria config `.claude/` — rodar após vendorizar skills ou alterar agents/hooks/MCP), `golang-safety`ᵍ |
+| QA | `tdd-workflow`ᵛ, `e2e-testing`ᵛ, `browser-qa`, `benchmark`, `coding-standards`ᵛ (item 13 da auditoria), `golang-testing`ᵍ |
+| Backend Dev | `backend-patterns`, `postgres-patterns`, `tdd-workflow`ᵛ, `database-migrations`, `error-handling`ᵛ, `api-design`ᵛ, `coding-standards`ᵛ, `ui-ux-pro-max` (tarefas de UI), `golang-concurrency`ᵍ, `golang-context`ᵍ, `golang-error-handling`ᵍ, `golang-database`ᵍ, `golang-safety`ᵍ, `golang-lint`ᵍ, `golang-observability-opentelemetry`ᵍ |
 | fluxo-git (skill) | `git-workflow`ᵛ, `github-ops`ᵛ |
+
+**Skills Goᵍ** (vendorizadas em 2026-07-07, após definição da stack): 8 de [samber/cc-skills-golang](https://github.com/samber/cc-skills-golang) + 1 de [bobmatnyc/claude-mpm-skills](https://github.com/bobmatnyc/claude-mpm-skills) (a de OTel-Golang prevista na §4.3). **Em conflito entre uma skill Go e os ADRs 0003–0005, os ADRs prevalecem** — as skills são conhecimento de apoio, não regra. Origens e commits registrados no `lib.md`. A skill `jpa-patterns` (JPA/Spring, herdada do template) foi removida na mesma data — stack decidida é Go.
 
 **Todas as skills de apoio estão vendorizadas em `.claude/skills/`** — o repositório é autossuficiente ao clonar (decisão de 2026-07-04; origem e créditos registrados no `lib.md`). O marcador ᵛ é histórico (primeiro lote vendorizado do ECC). Única exceção: `ui-ux-pro-max` é plugin, declarado em `.claude/settings.json` (marketplace + enabledPlugins) e instalado ao confiar no projeto.
 
@@ -89,7 +91,8 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 - `spec-driven-development` (mcpmarket) — este template já implementa SDD (task→refinamento→PRD→gates).
 - `mp-pdf-data-extractor` (mcpmarket) — o Claude lê PDFs nativamente (tool Read).
 - `mp-sql-copilot` (mcpmarket) — parcialmente coberta por `postgres-patterns`.
-- **Observabilidade de aplicação** — as skills disponíveis são específicas por plataforma ([bobmatnyc/claude-mpm-skills](https://github.com/bobmatnyc/claude-mpm-skills), MIT: Datadog, OTel-Golang, Vercel); vendorizar a adequada **quando a stack/plataforma for definida**. Até lá, os padrões do agente `sre-devops` (§6.8) governam.
+- ~~**Observabilidade de aplicação**~~ — resolvida em 2026-07-07: `golang-observability-opentelemetry` (bobmatnyc/claude-mpm-skills) vendorizada após a definição da stack (ver §4.2).
+- **Levantamento de 2026-07-07** (stack definida; avaliadas e **não** adotadas): `rabbitmq-expert` (awesomeskill.ai) — centrada em Python/pika, má aderência a Go; RabbitMQ fica coberto por `docs/lib/CACHE-MESSAGING.md` + Context7. `stripe-mcp-skill` (terceiro, pouco mantido) — quando chegar o E6, preferir o **MCP oficial da Stripe** (candidata registrada). Agentes externos (ex.: `golang-pro` do VoltAgent) — rejeitados: colidiriam com o `backend-dev` (executor único); conhecimento Go entra como skill de apoio (§4.2). As demais ~42 skills do samber/cc-skills-golang ficam como pool opcional — vendorizar só com necessidade real (ex.: `golang-performance` no E12, `golang-continuous-integration` no E0c).
 - `canary-watch` / `production-audit` (ECC) — verificação pós-deploy e prontidão de produção; vendorizar quando houver app deployada.
 - `codebase-onboarding` (ECC) — mapa de codebase existente; útil ao aplicar este template em repositório legado.
 - `hookify-rules` / `delivery-gate` (ECC) — candidatas para o enforcement técnico do gate de auditoria (§6.4.5), quando formos implementá-lo.
@@ -167,6 +170,7 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 1. **Toda nova dependência deve ser registrada no `lib.md`** com justificativa — nenhuma entra "de carona".
 2. Avaliar: necessidade real, estabilidade, manutenção ativa, CVEs, alternativas.
 3. Preferir a biblioteca padrão / recursos nativos quando resolverem o problema.
+4. A documentação técnica de consulta das dependências vive em **`docs/lib/`** (uma página por grupo, índice no `README.md`), elaborada com apoio do Context7 (§6.12). Ela **complementa** o `lib.md` (registro/justificativa/versões) — não o substitui; em divergência, prevalecem o `lib.md` e a consulta atual ao Context7. Atualizar a página correspondente quando uma dependência entrar no build ou mudar de versão.
 
 ### 6.10 Migrations
 1. Toda alteração estrutural de banco tem migration versionada — nunca alterar schema manualmente.
@@ -217,6 +221,7 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 docs/
 ├── roadmap.md            visão geral das entregas
 ├── design/               identidade visual e protótipos (referência p/ PRDs de UI)
+├── lib/                  docs técnicos das dependências do lib.md (consulta; base Context7)
 ├── adr/NNNN-titulo-kebab.md
 ├── prd/NNNN-titulo-kebab.md
 └── tasks/NNNN-titulo-kebab.md

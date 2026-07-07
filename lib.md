@@ -54,7 +54,9 @@ Toda dependência do projeto é registrada aqui **antes** de entrar, com justifi
 Todas em `.claude/skills/` — o repositório é autossuficiente ao clonar.
 
 - **De [affaan-m/ECC](https://github.com/affaan-m/ECC) (MIT), 2026-07-03**: `tdd-workflow`, `e2e-testing`, `github-ops`, `git-workflow`, `architecture-decision-records`, `coding-standards`, `api-design`, `error-handling`, `deployment-patterns`, `security-scan`.
-- **Migradas do nível de usuário em 2026-07-04** (frontmatter `origin: ECC`): `postgres-patterns`, `docker-patterns`, `database-migrations`, `benchmark`, `browser-qa`, `design-system`, `jpa-patterns`.
+- **Migradas do nível de usuário em 2026-07-04** (frontmatter `origin: ECC`): `postgres-patterns`, `docker-patterns`, `database-migrations`, `benchmark`, `browser-qa`, `design-system`, ~~`jpa-patterns`~~ (removida em 2026-07-07 — skill de JPA/Spring órfã após a stack Go).
+- **De [samber/cc-skills-golang](https://github.com/samber/cc-skills-golang) (MIT, commit `4881c01`), 2026-07-07** (pós-definição da stack; SKILL.md + references/, sem os evals/ do harness de origem): `golang-concurrency`, `golang-context`, `golang-error-handling`, `golang-testing`, `golang-database`, `golang-safety`, `golang-lint`, `golang-project-layout`. Demais ~42 skills do repo = pool opcional (roles.md §4.3).
+- **De [bobmatnyc/claude-mpm-skills](https://github.com/bobmatnyc/claude-mpm-skills) (MIT, commit `d8c8001`), 2026-07-07**: `golang-observability-opentelemetry` (frontmatter adaptado para invocação neste projeto — original era `user-invocable: false` para o harness claude-mpm).
 - **Migradas do nível de usuário em 2026-07-04** (sem marcador de origem no frontmatter; procedência provável ECC, não confirmada): `backend-patterns`, `frontend-patterns`, `security-review`.
 
 Atualização: re-baixar do repositório de origem e reaplicar o rodapé de crédito. Plugin `ui-ux-pro-max` declarado em `.claude/settings.json` (marketplace GitHub `nextlevelbuilder/ui-ux-pro-max-skill`).
