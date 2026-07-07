@@ -216,6 +216,7 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 ```
 docs/
 ├── roadmap.md            visão geral das entregas
+├── design/               identidade visual e protótipos (referência p/ PRDs de UI)
 ├── adr/NNNN-titulo-kebab.md
 ├── prd/NNNN-titulo-kebab.md
 └── tasks/NNNN-titulo-kebab.md

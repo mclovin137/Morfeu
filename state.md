@@ -14,6 +14,7 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Últimas decisões relevantes
 
+- 2026-07-07 — **Identidade visual "A Sala Escura" aprovada** (exploração de design, fora do fluxo de task — sem código de produção). Paleta de 7 tokens (noite azul-violeta + tungstênio + papoula), Fraunces/Schibsted Grotesk/Spline Sans Mono, 5 regras de movimento, ClassInd com cores oficiais. Registrada em `docs/design/` (spec + protótipo autocontido). Variação clara de login ("saguão") explorada e **descartada pelo usuário**. Orienta os PRDs de E0c/E5/E8; fontes self-hosted a registrar no `lib.md` quando a SPA nascer.
 - 2026-07-07 — **6 ADRs criados** após confronto multiagente sobre a proposta do usuário (Object Calisthenics + Strategy/Factory/State + Controller→Actor→Resolver→Service→DAO + DDD crítico + Playwright/base própria). Usuário aceitou as 4 recomendações de consenso: camadas mapeadas idiomaticamente (handler→service→sqlc; Actor=orquestrador da saga; Resolver=composition root; DAO=sqlc+ports), calisthenics adaptado via `.golangci.yml`, **PT no domínio + EN técnico**, Playwright como topo da pirâmide com bases descartáveis. Consulta CAP do usuário respondida: PostgreSQL confirmado (domínio CP; cartaz em cache é o lado eventual deliberado).
 - 2026-07-06 — **Descoberta completa** (entrevista A–I + 5 pareceres + confronto). Decisões-chave e trade-offs aceitos registrados em `doc.md` §10; destaques: trava de assento no **PG** (usuário reverteu Redis após consenso 4/4), **backup diário revertido** (era "sem backup"), auditoria enxuta (era "completa"), fluxo único convidado+conta, e-mail pós-pivô na saga, circuit breaker só no gateway, **Stripe** sandbox, repo **público**, TTL da trava 10 min + 1 extensão, cancelamento até 2h antes, check-in QR fora do MVP, Tempo entra com a saga, alertas via **Discord**, repo será movido p/ **WSL ext4**, conta Oracle nova em **PAYG**.
 - 2026-07-04 — Config sensível: `.env` (CONTEXT7_API_KEY + Obsidian) gitignored; `.env.example` versionado; `.mcp.json` com `${CONTEXT7_API_KEY:-}`; chave também em `.claude/settings.local.json`.
@@ -43,6 +44,7 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 | Data | Evento |
 |------|--------|
+| 2026-07-07 | **Identidade visual "A Sala Escura" aprovada e registrada** em `docs/design/` (paleta, tipografia, movimento, voz + protótipo navegável de login/cadastro e home). |
 | 2026-07-07 | **ADRs 0001–0006 criados** (stack, dados, camadas, código, DDD/patterns, testes) após confronto multiagente da proposta de padrões do usuário. |
 | 2026-07-06 | **Descoberta concluída**: entrevista A–I, 5 pareceres, confronto (14 decisões), `doc.md` + `lib.md` + `docs/roadmap.md` gerados. |
 | 2026-07-04 | Config: `.env`/`.env.example`/`.mcp.json` (Context7 key + Obsidian); chave protegida do git. |

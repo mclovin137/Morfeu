@@ -218,7 +218,7 @@ Operador cria sessão → o módulo `sessao` valida sobreposição na mesma sala
 | Cache | Redis | cache de cartaz/mapa (leitura 90%); **não** guarda estado transacional |
 | Mensageria | RabbitMQ | escolha do usuário (aprendizado de mensageria explícito) — ver trade-offs |
 | Migrations | golang-migrate v4 | simples, SQL puro, integra com `criar-migration` (§6.10); validado no Context7 |
-| Frontend | React + Vite (SPA) | mapa de assentos é UI rica; usuário já domina React |
+| Frontend | React + Vite (SPA) | mapa de assentos é UI rica; usuário já domina React; identidade visual aprovada: `docs/design/identidade-visual.md` ("A Sala Escura") |
 | Auth | própria: Argon2id + JWT curto (memória) + refresh opaco rotativo (cookie HttpOnly) + RBAC | aprendizado do fundamento; desenho do security é inegociável |
 | Infra | VM Oracle Cloud Always Free (4 OCPU ARM/24 GB) — app + PG + Redis + RabbitMQ + observabilidade, limites de memória por container | budget R$ 0; aprendizado de ops puro |
 | Dev local | Docker Compose canônico; repo movido para WSL ext4 | I/O nativo (decisão do confronto) |
