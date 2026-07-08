@@ -45,5 +45,10 @@ build/
 
 ### Claude Code ###
 .claude/settings.local.json
+
 ### IntelliJ (pasta inteira — decisão 2026-07-04) ###
 .idea/
+
+### Go binaries ###
+app
+*.log

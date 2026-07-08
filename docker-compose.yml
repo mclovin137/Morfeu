@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: morfeu-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: morfeu
+    ports:
+      - "5432:5432"
+    volumes:
+      - morfeu-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - morfeu-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: morfeu-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - morfeu-redis:/data
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - morfeu-network
+
+volumes:
+  morfeu-postgres:
+  morfeu-redis:
+
+networks:
+  morfeu-network:
+    driver: bridge
