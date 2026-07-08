@@ -109,7 +109,9 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 | `frontend-patterns`, `design-system` | E5 (bloco React) |
 | `e2e-testing`, `browser-qa` | E5+ (Playwright entra no topo da pirâmide) |
 | `benchmark` | E12 (teste de carga) |
-| plugin `ui-ux-pro-max` (desabilitado em `.claude/settings.json`) | E5 (voltar a `true`) |
+| plugin `frontend-design` (desabilitado em `.claude/settings.json`) | E5 (voltar a `true`) |
+
+> O plugin `ui-ux-pro-max` permanece **ativo** (decisão do usuário, 2026-07-08) — não estacionar.
 
 3. As listas do §4.2 permanecem a referência completa — skill estacionada continua listada, com o estado registrado aqui.
 

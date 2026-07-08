@@ -43,7 +43,7 @@ Leia sempre, nesta ordem: `roles.md` (fonte da verdade), `state.md` (estado atua
 
 ## Skills de apoio
 
-Use **apenas as skills indicadas no PRD** (máx. 2–3 — roles.md §4.4); catálogo disponível: `backend-patterns` (arquitetura e APIs), `postgres-patterns` (queries e índices), `tdd-workflow` (testes primeiro), `database-migrations` (migrations seguras), `error-handling` (erros tipados, retries, circuit breakers), `api-design` (padrões REST), `coding-standards` (convenções base), skills `golang-*` (Go idiomático). Estacionado até o E5 (§4.4): plugin `ui-ux-pro-max` (UI/frontend).
+Use **apenas as skills indicadas no PRD** (máx. 2–3 — roles.md §4.4); catálogo disponível: `backend-patterns` (arquitetura e APIs), `postgres-patterns` (queries e índices), `tdd-workflow` (testes primeiro), `database-migrations` (migrations seguras), `error-handling` (erros tipados, retries, circuit breakers), `api-design` (padrões REST), `coding-standards` (convenções base), skills `golang-*` (Go idiomático), `ui-ux-pro-max` (tarefas de UI/frontend).
 
 ## Formato de saída
 
