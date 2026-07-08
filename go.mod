@@ -8,6 +8,8 @@ require (
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	go.uber.org/zap v1.28.0
+	github.com/google/uuid v1.6.0
+	github.com/testcontainers/testcontainers-go v0.31.0
 )
 
 require (
