@@ -4,7 +4,84 @@
 
 ## Task atual
 
-**Nenhuma task em andamento.** Descoberta e ADRs 0001–0006 concluídos (bootstrap de governança, pré-task). A primeira task, criada via `criar-task` sobre o item 0/E0 do roadmap, preenche este arquivo com: objetivo, escopo, fora de escopo, branch, PRD, tabela de arquivos, dependências, plano de testes, pendências e riscos.
+**Task 0001 — App Skeleton Go** (E0a)
+- **Status:** não iniciada → próximo: `/refinar-task`
+- **Branch:** `feature/0001-app-skeleton-go`
+- **PRD:** pendente (será criado após refinamento + aprovação multiagente)
+- **Roadmap:** E0a (Walking skeleton, subtask a)
+
+### Objetivo
+
+Estrutura base da aplicação Go (app skeleton) com Docker Compose (PostgreSQL + Redis), sistema de migrations (golang-migrate), e um endpoint de exemplo `GET /filmes` servindo dados do banco com cache read-through — pronta para adicionar lógica de negócio.
+
+### Escopo
+
+1. **Estrutura Go** (`main.go`, handlers, config, logger)
+2. **Docker Compose** (PG + Redis)
+3. **Migrations** (golang-migrate com seed)
+4. **Handler `GET /filmes`** (cache read-through Redis, TTL 5 min)
+5. **Integração mínima** (pgx, go-redis, sqlc, error logging)
+
+### Arquivos (estimativa: ~15)
+
+| Arquivo | Tipo | Nota |
+|---|---|---|
+| `cmd/app/main.go` | novo | entry point |
+| `internal/config/config.go` | novo | env config |
+| `internal/handler/film.go` | novo | handler GET /filmes |
+| `internal/logger/logger.go` | novo | structured logger |
+| `internal/cache/redis.go` | novo | cache layer |
+| `internal/db/queries.sql` | novo | sqlc queries |
+| `internal/db/queries.sql.go` | gerado | sqlc output |
+| `internal/db/models.go` | gerado | sqlc output |
+| `migrations/001_initial_schema.up.sql` | novo | schema + seed |
+| `migrations/001_initial_schema.down.sql` | novo | rollback |
+| `docker-compose.yml` | novo | PG + Redis |
+| `.env.example` | novo | env template |
+| `Dockerfile` | novo | multi-stage build |
+| `go.mod` | update | add deps |
+| `go.sum` | update | lock versions |
+| `Makefile` | novo | compose/migrate/run targets |
+
+### Dependências
+
+- `github.com/labstack/echo/v4` (Echo web framework)
+- `github.com/jackc/pgx/v5` (PG driver)
+- `github.com/sqlc-dev/sqlc` (SQL compiler)
+- `github.com/redis/go-redis/v9` (Redis client)
+- `github.com/golang-migrate/migrate/v4` (migrations)
+- `go.uber.org/zap` (logging)
+
+### Critérios de aceite
+
+- [ ] App compila sem erros (`go build ./cmd/app`)
+- [ ] `docker-compose up` levanta PG + Redis + app em ~5s
+- [ ] Migrations rodam e populam tabela `films`
+- [ ] `GET http://localhost:8080/filmes` retorna JSON com ~10 filmes, status 200
+- [ ] Segunda requisição vem do Redis (verificado via logs)
+- [ ] `docker-compose down` para tudo sem erro
+- [ ] README.md da task documenta setup, como rodar, diagrama
+- [ ] Nenhum secret hardcoded; tudo via `.env` (gitignored)
+- [ ] Código passa `golangci-lint run` sem warnings
+- [ ] Logger estruturado (JSON) ativo
+
+### Riscos
+
+| Risco | Probabilidade | Impacto | Mitigação |
+|---|---|---|---|
+| Cache miss/inconsistência | Médio | Médio | Testes unitários + TTL 5 min |
+| Docker networking issues | Baixo | Alto | docker-compose test em CI |
+| sqlc code generation issues | Baixo | Médio | Validar schema primeiro |
+| Go modules conflict | Baixo | Médio | Context7 + lib.md check |
+| Port conflicts | Médio | Baixo | compose service names |
+
+### Impacto estimado
+
+- **Código**: Médio (novo, foundation, sem lógica complexa)
+- **Banco**: Baixo (schema trivial, seed fake)
+- **Infra**: Médio (Docker Compose, networking)
+- **Usuários**: N/A (dev-only)
+- **Testes**: Médio (integração obrigatória para cache)
 
 ## Auditorias
 

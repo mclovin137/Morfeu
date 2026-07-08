@@ -7,9 +7,9 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 **Descoberta concluída (2026-07-06).** Morfeu definido: **venda de ingressos de cinema online** (portfólio/aprendizado, dev solo, 10–12h/sem, horizonte 7–9 meses). Stack: Go + Echo, sqlc + pgx/v5, PostgreSQL (fonte da verdade, inclusive trava de assento), Redis (cache), RabbitMQ (saga do checkout), React + Vite, VM Oracle Always Free (PAYG), observabilidade self-hosted, k6. Artefatos gerados: `doc.md` (mini-UML), `lib.md` (stack `planejada`, validada Context7/OSV), `docs/roadmap.md` (E0–E12, marcos M1–M5).
 
 - **Última task concluída:** nenhuma (descoberta não é task)
-- **Task atual:** nenhuma — próximo passo é o item 0 do roadmap (pré-bootstrap) e `criar-task` sobre o E0
-- **Branch atual:** `main`
-- **PRD atual:** nenhum
+- **Task atual:** 0001 (App Skeleton Go — E0a) — status: não iniciada → próximo: `/refinar-task`
+- **Branch atual:** `feature/0001-app-skeleton-go`
+- **PRD atual:** nenhum (será criado após refinamento)
 - **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — todos aceitos em 2026-07-07 com autorização explícita. Candidatas restantes (trava de assento, RabbitMQ, saga) nascem nos refinamentos E4/E6.
 
 ## Últimas decisões relevantes
