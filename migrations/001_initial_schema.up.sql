@@ -21,5 +21,4 @@ INSERT INTO films (id, title, year, runtime, synopsis, imdb_id, poster_url, crea
 (7, 'Interstellar', 2014, 169, 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity''s survival.', 'tt0816692', 'https://example.com/poster7.jpg', NOW()),
 (8, 'The Godfather', 1972, 175, 'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant youngest son.', 'tt0068646', 'https://example.com/poster8.jpg', NOW()),
 (9, 'Gladiator', 2000, 155, 'A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery.', 'tt0172495', 'https://example.com/poster9.jpg', NOW()),
-(10, 'The Lord of the Rings: The Fellowship of the Ring', 2001, 178, 'A meek Hobbit from the Shire and eight companions embark on a journey to Mount Doom to destroy the One Ring and defeat its maker, the Dark Lord Sauron.', 'tt0120737', 'https://example.com/poster10.jpg', NOW())
-ON CONFLICT DO NOTHING;
+(10, 'The Lord of the Rings: The Fellowship of the Ring', 2001, 178, 'A meek Hobbit from the Shire and eight companions embark on a journey to Mount Doom to destroy the One Ring and defeat its maker, the Dark Lord Sauron.', 'tt0120737', 'https://example.com/poster10.jpg', NOW());
