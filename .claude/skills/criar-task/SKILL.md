@@ -21,7 +21,7 @@ Transforma um item do roadmap em uma task pequena, revisável e rastreável.
 5. Crie a branch da task: `feature/NNNN-titulo` (ou `fix/`, `chore/`, `refactor/` — ver skill `fluxo-git`).
 6. Atualize `state.md` (task atual, branch atual).
 7. Regenere `plan.md` para a nova task (objetivo, escopo, arquivos previstos, status "não iniciada").
-8. Próximo passo obrigatório do fluxo: **refinamento multiagente** (`refinar-task`, roles.md §6.14) e só então o PRD (`criar-prd`).
+8. Próximo passo do fluxo: verifique `docs/refinamentos/` — se o **épico** da task já foi refinado, siga direto ao PRD (`criar-prd`) consumindo as exigências da task; senão, rode `refinar-task` **para o épico** (roles.md §6.14). Task trivial (docs/chore/fix pequeno) dispensa refinamento (§6.14.6).
 
 ## Checklist final
 

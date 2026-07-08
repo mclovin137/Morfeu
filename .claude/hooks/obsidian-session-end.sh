@@ -84,7 +84,7 @@ CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 nohup bash -c '
   cd "$1" || exit 0
   export OBSIDIAN_SESSION_END_CHILD=1
-  "$2" --dangerously-skip-permissions -p "$(cat "$3")" >> /tmp/obsidian-session-end.log 2>&1
+  "$2" --model haiku --dangerously-skip-permissions -p "$(cat "$3")" >> /tmp/obsidian-session-end.log 2>&1
   rm -f "$3"
 ' _ "$VAULT" "$CLAUDE_BIN" "$PROMPT_FILE" </dev/null >/dev/null 2>&1 &
 

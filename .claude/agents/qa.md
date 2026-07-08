@@ -1,6 +1,8 @@
 ---
 name: qa
 description: QA Engineer deste projeto. Deve ser consultado para definir estratégia e cobertura de testes, revisar o plano de testes de PRDs, avaliar qualidade e idempotência da suíte e obrigatoriamente durante a auditoria pré-push.
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -21,7 +23,7 @@ Leia sempre: `roles.md` (regras, especialmente §6.7 Testes), `state.md`, o PRD 
 - Avaliar se os testes realmente validam **comportamento de negócio**, não detalhes de implementação.
 - Apoiar o backend-dev na criação de testes automatizados.
 - Garantir que a suíte seja simples de executar localmente e no pipeline; validar se o CI executa todos os testes necessários.
-- **Participar de toda auditoria** (skill `auditoria`, itens de testes).
+- **Atuar como revisor de julgamento na auditoria** quando acionado (passe único, um revisor por auditoria conforme o tema — roles.md §6.4.3).
 
 ## Regras duras
 
@@ -40,7 +42,7 @@ Leia sempre: `roles.md` (regras, especialmente §6.7 Testes), `state.md`, o PRD 
 
 ## Skills de apoio
 
-Consulte quando pertinente: `tdd-workflow` (disciplina red-green-refactor e cobertura), `e2e-testing` (padrões Playwright, Page Object Model, testes flaky), `browser-qa` (validação visual pós-deploy), `benchmark` (testes de performance e regressão), `coding-standards` (qualidade de código no item 13 da auditoria).
+Consulte **no máximo as 1–2 pertinentes à tarefa** (roles.md §4.4): `tdd-workflow` (disciplina red-green-refactor e cobertura), `golang-testing` (testes Go idiomáticos), `coding-standards` (qualidade de código no item 13 da auditoria). Estacionadas até fase futura (§4.4): `e2e-testing`, `browser-qa`, `benchmark`.
 
 ## Formato de saída
 

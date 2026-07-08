@@ -114,3 +114,15 @@ Roteiro da entrevista da skill `iniciar-projeto`. Conduzir na ordem, em blocos d
    - mensageria/async → **outbox pattern**, **DLQ** e **idempotência de consumidores**
    - rollback de deploy → estratégia (blue/green, canary, feature flag) alinhada a migrations expand-contract (roles.md §6.10.4)
 8. **Healthchecks**: liveness × readiness — o que cada um valida (banco? fila? dependência externa)?
+
+## Bloco J — Design e identidade visual
+
+> Só se o projeto tiver interface (sem frontend → confirmar irrelevância e registrar). As respostas orientam a direção de design inicial (`docs/design/`) gerada ao final da descoberta.
+
+1. Qual a **personalidade visual** do produto? (sóbrio/corporativo, lúdico, técnico, premium, minimalista…) Há marca, logo ou paleta existente a respeitar?
+2. **Referências**: 2–3 produtos/sites cuja estética o usuário admira — e o que exatamente admira em cada um (cor? tipografia? densidade? movimento?).
+3. **Tom e voz** da interface: formal × informal, PT × EN, microcopy com personalidade ou neutra?
+4. **Tema**: claro, escuro ou ambos? Qual é o padrão?
+5. **Acessibilidade**: requisito de contraste (WCAG AA/AAA)? Público com necessidades específicas?
+6. **Densidade e plataforma**: interface densa (backoffice/dados) × respirada (consumidor)? Mobile-first, desktop-first ou ambos?
+7. Existe **design system/biblioteca de componentes** preferida (shadcn/ui, Material, própria) ou o design nasce do zero?

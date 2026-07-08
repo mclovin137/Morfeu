@@ -1,33 +1,51 @@
 ---
 name: refinar-task
-description: Refinamento multiagente de uma task deste projeto, conforme roles.md §6.14. OBRIGATÓRIO entre a criação da task e o PRD — os 5 agentes analisam a task, debatem entre si e convergem numa conclusão registrada que alimenta o PRD.
+description: Refinamento multiagente por ÉPICO deste projeto, conforme roles.md §6.14. OBRIGATÓRIO antes do primeiro PRD de cada épico — os 5 agentes analisam o épico inteiro uma única vez, debatem e produzem exigências por task. Tasks triviais dispensam; tasks padrão consomem o refinamento do épico já registrado.
 ---
 
-# Refinar Task (cerimônia multiagente)
+# Refinar Épico (cerimônia multiagente, 1× por épico)
 
-Simula uma cerimônia de refinamento: **toda task passa por todos os agentes**, cada um emite parecer do seu domínio, os pareceres são confrontados em debate e a conclusão consolidada é registrada na task — antes de qualquer PRD.
+Simula uma cerimônia de refinamento: **cada épico passa uma única vez por todos os agentes**, que emitem parecer do seu domínio sobre o épico inteiro, debatem as divergências e produzem **exigências por task planejada** — antes de qualquer PRD do épico. Tasks subsequentes do mesmo épico **não** repetem a cerimônia (roles.md §6.14.6).
+
+## Antes de invocar — a cerimônia é necessária?
+
+1. Já existe `docs/refinamentos/ENN-*.md` para o épico? → **Não refinar de novo**; siga ao `criar-prd` consumindo as exigências da task.
+2. A task é **trivial** (docs, chore, fix pequeno, sem decisão de projeto)? → dispensa refinamento (roles.md §6.14.6).
+3. Épico **XL** (ex.: E6 — saga) pode ganhar rodada complementar focada numa task crítica — **só com aval do usuário**.
 
 ## Pré-requisitos
 
-1. A task existe em `docs/tasks/NNNN-*.md` (senão, rode `criar-task` antes).
-2. Você leu `roles.md`, `state.md` e os ADRs ativos.
+1. O épico existe no `docs/roadmap.md` com suas tasks previstas.
+2. Você leu `roles.md`, `state.md` e identificou os ADRs que tocam o tema.
 
 ## Passo a passo
 
+### Rodada 0 — Brief pré-digerido (dieta de contexto, §6.14.3)
+
+Monte **um único brief** na sessão principal e envie o MESMO texto a todos os agentes — eles **não devem reler o repositório**:
+
+- O épico (descrição do roadmap) e as tasks previstas com escopo estimado.
+- Decisões relevantes do `doc.md` (domínio, fluxos críticos, RNFs que tocam o épico).
+- Trechos dos ADRs pertinentes (não o arquivo inteiro).
+- Estado atual resumido (o que já existe implementado que o épico toca).
+- As **1–2 skills de apoio pertinentes por agente** (roles.md §4.4) — o agente carrega só essas, nunca varre o catálogo.
+
+**Modelo:** pareceres consultivos podem rodar em modelo menor (parâmetro `model` do Agent tool — ex.: `sonnet`); a sessão principal e a implementação permanecem no modelo principal.
+
 ### Rodada 1 — Pareceres independentes (paralelo)
 
-Invoque os 4 agentes consultivos **em paralelo**, cada um recebendo a task completa e a instrução de responder do seu domínio:
+Invoque os 4 agentes consultivos **em paralelo**, cada um recebendo o brief e a instrução de responder do seu domínio **por task do épico**:
 
 | Agente | Parecer esperado |
 |---|---|
-| `arquiteto` | encaixe na arquitetura/ADRs, padrões aplicáveis, risco de overengineering, volumetria |
+| `arquiteto` | encaixe na arquitetura/ADRs, padrões aplicáveis, drift arquitetural, risco de overengineering, volumetria |
 | `sre-devops` | impacto em infra/ambiente, observabilidade necessária, gargalos previsíveis |
 | `security` | riscos de segurança, dados sensíveis, dependências/CVEs, controles necessários |
 | `qa` | estratégia e cenários de teste, critérios de aceite testáveis, riscos de regressão |
 
-Depois, invoque o `backend-dev` com os 4 pareceres para o parecer de **viabilidade de implementação**: esforço, quebra em passos, estimativa de arquivos (≤ 30, roles.md §6.3), dúvidas técnicas.
+Depois, invoque o `backend-dev` com os 4 pareceres para o parecer de **viabilidade de implementação**: esforço, quebra em tasks/passos, estimativa de arquivos por task (≤ 30, roles.md §6.3), dúvidas técnicas.
 
-Cada parecer deve terminar com: **posição** (seguir / seguir com ressalvas / reformular a task), **exigências para o PRD** e **perguntas abertas**.
+Cada parecer deve terminar com: **posição** (seguir / seguir com ressalvas / reformular), **exigências para os PRDs (por task)** e **perguntas abertas**.
 
 ### Rodada 2 — Debate
 
@@ -37,17 +55,17 @@ Cada parecer deve terminar com: **posição** (seguir / seguir com ressalvas / r
 
 ### Rodada 3 — Conclusão
 
-1. Redija a síntese: escopo confirmado/ajustado, exigências consolidadas para o PRD, riscos priorizados, perguntas escaladas ao usuário.
-2. Registre na task (`docs/tasks/NNNN-*.md`) a seção abaixo.
-3. Atualize `plan.md` (status: task refinada) e, se o escopo mudou, a própria task e o `docs/tasks/README.md`.
-4. Próximo passo do fluxo: `criar-prd` **consumindo as exigências do refinamento**.
+1. Redija a síntese: escopo do épico confirmado/ajustado, **exigências consolidadas por task**, riscos priorizados, perguntas escaladas ao usuário.
+2. Registre em `docs/refinamentos/ENN-nome-kebab.md` (formato abaixo) e atualize o índice `docs/refinamentos/README.md`.
+3. Atualize `plan.md` (épico refinado) e, se o escopo mudou, o `docs/roadmap.md` (com aval do usuário).
+4. Próximo passo do fluxo: `criar-task` (se a task não existe) → `criar-prd` **consumindo as exigências da task no refinamento** — sem nova rodada de agentes (§6.2.5).
 
-## Formato do registro (apêndice na task)
+## Formato do registro (`docs/refinamentos/ENN-nome.md`)
 
 ```markdown
-## Refinamento — AAAA-MM-DD
+# Refinamento — Épico ENN (nome) — AAAA-MM-DD
 
-### Pareceres
+## Pareceres
 | Agente | Posição | Pontos-chave |
 |---|---|---|
 | arquiteto | seguir com ressalvas | ... |
@@ -56,20 +74,26 @@ Cada parecer deve terminar com: **posição** (seguir / seguir com ressalvas / r
 | qa | ... | ... |
 | backend-dev | ... | ... |
 
-### Debate (divergências e resolução)
+## Debate (divergências e resolução)
 1. [divergência] → [consenso: decisão + regra] | [escalado ao usuário]
 
-### Conclusão
-- Escopo final: ...
-- Exigências para o PRD: [lista que o criar-prd DEVE incorporar]
+## Conclusão
+- Escopo final do épico: ...
 - Riscos priorizados: ...
-- Perguntas ao usuário: [se houver — bloqueiam o PRD até resposta]
+- Perguntas ao usuário: [se houver — bloqueiam os PRDs afetados até resposta]
+
+## Exigências por task
+### Task (a) — nome
+- [lista que o criar-prd DEVE incorporar]
+### Task (b) — nome
+- ...
 ```
 
 ## Checklist final
 
-- [ ] Os 5 agentes emitiram parecer
+- [ ] Brief pré-digerido enviado (agentes não releram o repo)
+- [ ] Os 5 agentes emitiram parecer cobrindo todas as tasks do épico
 - [ ] Divergências explicitadas e cada uma resolvida por regra ou escalada
-- [ ] Seção "Refinamento" registrada na task
-- [ ] Exigências prontas para o PRD (ou perguntas escaladas ao usuário)
+- [ ] `docs/refinamentos/ENN-*.md` registrado + índice atualizado
+- [ ] Exigências por task prontas para os PRDs (ou perguntas escaladas ao usuário)
 - [ ] plan.md atualizado

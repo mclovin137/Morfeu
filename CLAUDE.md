@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Este projeto segue governança multiagente. **`roles.md` é a fonte da verdade** de todas as regras — leia-o antes de qualquer trabalho. Agentes em `.claude/agents/`, skills do fluxo em `.claude/skills/`.
 
-Fluxo padrão: `descoberta → roadmap → task → refinamento → PRD → implementação → auditoria → push → PR → CI/CD`.
+Fluxo padrão: `descoberta → roadmap → refinamento do épico → task → PRD → implementação → gate pré-push → push → PR → CI + revisão → merge`.
 
 ## Invariantes (nunca violar, mesmo sem ler roles.md)
 
-1. **Nenhum projeto sem descoberta** (`iniciar-projeto` — entrevista + confronto multiagente; gera `doc.md`, `lib.md` e `roadmap.md` iniciais); **nenhuma implementação sem PRD** (`criar-prd`); nenhum PRD sem **refinamento multiagente** da task (`refinar-task` — os 5 agentes debatem e convergem); nenhuma task sem branch própria e escopo ≤ 30 arquivos (`criar-task`).
-2. **Nenhum push sem auditoria APROVADA** (skill `auditoria`).
+1. **Nenhum projeto sem descoberta** (`iniciar-projeto` — entrevista + confronto multiagente com quadro de trade-offs e prioridades; gera `doc.md`, `lib.md`, `roadmap.md`, direção de design e ADRs iniciais autorizados); **nenhuma implementação sem PRD** (`criar-prd`, just-in-time ao abrir a task); nenhum PRD sem **refinamento multiagente do épico** (`refinar-task` — os 5 agentes debatem o épico uma única vez; task trivial dispensa, roles.md §6.14.6); nenhuma task sem branch própria e escopo ≤ 30 arquivos (`criar-task`).
+2. **Gate híbrido de auditoria** (roles.md §6.4): pré-push exige scan de secrets limpo; **nenhum merge sem CI verde + revisão de julgamento aprovada**. Transição: enquanto o CI (E0c) não existir, nenhum push sem a skill `auditoria` APROVADA.
 3. **ADR só com autorização explícita do usuário** (`criar-adr`).
 4. Toda dependência nova registrada em `lib.md` antes de usar; dúvida sobre lib/framework/versão → consultar **Context7**, nunca presumir.
-5. Manter `plan.md` atualizado durante a task e `state.md` ao concluir; ao fim de cada task, registrar a sessão no vault Obsidian (`/obsidian-log` + `/obsidian-decide`, roles.md §6.13).
+5. Manter `plan.md` atualizado durante a task e `state.md` ao concluir; o hook `SessionEnd` registra a sessão no vault automaticamente — `/obsidian-decide` apenas para decisões relevantes (roles.md §6.13).
 
 > Nota: `plan.md` na raiz é o plano da task corrente **do projeto** — não confundir com o plan mode do Claude Code.
 
