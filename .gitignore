@@ -40,8 +40,10 @@ build/
 
 ### Segredos (roles.md §6.6) ###
 .env
+.env.docker-compose
 .env.*
 !.env.example
+!.env.docker-compose.example
 
 ### Claude Code ###
 .claude/settings.local.json

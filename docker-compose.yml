@@ -4,9 +4,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: morfeu-postgres
+    env_file: .env.docker-compose
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: morfeu
     ports:
       - "5432:5432"
