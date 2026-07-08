@@ -242,7 +242,7 @@ func TestHealthEndpoint_DBDown(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	// Call handler
-	err = handler.Health(c)
+	err = handler.Check(c)
 	if err != nil {
 		t.Fatalf("Health handler failed: %v", err)
 	}
