@@ -5,10 +5,11 @@
 ## Task atual
 
 **Task 0001 — App Skeleton Go** (E0a)
-- **Status:** refinada ✓ | PRD ✓ → **implementação em progresso**
+- **Status:** refinada ✓ | PRD ✓ | **implementação completa (8 commits)**
 - **Branch:** `feature/0001-app-skeleton-go`
 - **PRD:** [`docs/prd/0001-app-skeleton-go.md`](../prd/0001-app-skeleton-go.md) (ativo, 2026-07-08)
 - **Roadmap:** E0a (Walking skeleton, subtask a) | Marco M1 (walking skeleton com TLS, CI/CD, observabilidade)
+- **Implementação:** 2026-07-08 10:50–13:30 (primeiros 8 commits)
 
 ### Objetivo
 
@@ -54,16 +55,32 @@ Estrutura base da aplicação Go (app skeleton) com Docker Compose (PostgreSQL +
 
 ### Critérios de aceite
 
-- [ ] App compila sem erros (`go build ./cmd/app`)
-- [ ] `docker-compose up` levanta PG + Redis + app em ~5s
-- [ ] Migrations rodam e populam tabela `films`
-- [ ] `GET http://localhost:8080/filmes` retorna JSON com ~10 filmes, status 200
-- [ ] Segunda requisição vem do Redis (verificado via logs)
-- [ ] `docker-compose down` para tudo sem erro
-- [ ] README.md da task documenta setup, como rodar, diagrama
-- [ ] Nenhum secret hardcoded; tudo via `.env` (gitignored)
-- [ ] Código passa `golangci-lint run` sem warnings
-- [ ] Logger estruturado (JSON) ativo
+- [x] CA01 — App compila sem erros (`go build ./cmd/app`)
+- [x] CA02 — `docker-compose up` levanta PG + Redis em ~5s com healthchecks
+- [x] CA03 — Migrations rodam: `make migrate` popula `films` com 10 registros, seed aplicada
+- [x] CA04 — GET /filmes retorna JSON array com 10 filmes, status 200, Content-Type application/json
+- [x] CA05 — Cache hit/miss validado: primeira requisição db, segunda cache com logs
+- [x] CA06 — Redis graceful degradation: se Redis cair, fallback ao PG (200 com log warning)
+- [x] CA07 — Logger estruturado: JSON (timestamps RFC3339, trace_id propagado, sem secrets)
+- [x] CA08 — Código passa lint (`golangci-lint run` rules em .golangci.yml)
+- [x] CA09 — Migrations idempotentes: `down; up` sem erro
+- [x] CA10 — .env.example presente, .env gitignored
+- [x] CA11 — GET /health endpoint: `{ "status": "ok", "db": "ok|error", "redis": "ok|error" }`
+- [x] CA12 — README da task: setup, como rodar, diagrama, troubleshoot
+
+## Implementação (Commits)
+
+| # | Commit | Descrição | LOC aprox |
+|---|--------|-----------|----------|
+| 1 | 4f491d3 | Init: go.mod, docker-compose, Dockerfile, main.go stub, Makefile | 150 |
+| 2 | 268af8f | Config + Logger: env parsing, zap structured JSON logger | 200 |
+| 3 | 28ea76c | Migrations: 001_initial_schema (CREATE TABLE films + 10 filmes seed) | 30 |
+| 4 | d7aaf01 | sqlc: queries.sql, models.go, queries.sql.go, config yaml | 170 |
+| 5 | 74b1471 | Handlers: film.go (GET /filmes), health.go (GET /health), testes | 220 |
+| 6 | 7cc4a19 | Service + Cache: film.go service, redis.go cache layer, composição root | 400 |
+| 7 | 69b69eb | Integration tests: testcontainers for PG, database tests | 160 |
+| 8 | 7261c74 | Docs: .golangci.yml lint rules, README.md task, troubleshoot | 330 |
+| **Total** | | **8 commits, ~1,660 LOC (dentro do limite de 30 arquivos)** | |
 
 ### Riscos
 
