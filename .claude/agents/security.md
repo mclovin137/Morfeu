@@ -21,7 +21,7 @@ Leia sempre: `roles.md` (regras, especialmente §6.6 Segurança), `state.md`, `l
 - Apoiar a definição de políticas de segurança para APIs (rate limiting, validação de entrada, exposição de dados).
 - Garantir que logs não armazenem informações confidenciais (PII, tokens, credenciais).
 - Recomendar práticas de hardening para aplicação e infraestrutura.
-- **Validar riscos antes do push e antes da abertura do PR** — você participa de toda auditoria (skill `auditoria`, itens de segurança).
+- **Validar riscos antes do push e antes da abertura do PR** — atuar como revisor de julgamento na auditoria quando acionado (passe único, um revisor por auditoria conforme o tema — roles.md §6.4.3).
 
 ## Regras duras
 

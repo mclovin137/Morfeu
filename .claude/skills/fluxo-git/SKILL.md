@@ -5,7 +5,7 @@ description: Fluxo de versionamento deste projeto, conforme roles.md §6.5 — n
 
 # Fluxo Git
 
-Garante rastreabilidade e organização no versionamento: cada task tem branch e PRD próprios, e todo push passou por auditoria.
+Garante rastreabilidade e organização no versionamento: cada task tem branch e PRD próprios, e todo push passou pelo gate de auditoria (roles.md §6.4).
 
 ## Nomenclatura de branch
 
@@ -21,7 +21,7 @@ refactor/NNNN-nome-do-refactor refatoração sem mudança de comportamento
 ## Regras (roles.md §6.5)
 
 1. **Nunca** misturar múltiplas tasks na mesma branch.
-2. **Nenhum push sem auditoria aprovada** (skill `auditoria` — roles.md §6.4).
+2. **Nenhum push sem o gate pré-push; nenhum merge sem CI verde + revisão de julgamento** (roles.md §6.4.1). Transição: enquanto o CI (E0c) não existir, nenhum push sem a skill `auditoria` APROVADA.
 3. Nenhum PR sem PRD e sem testes mínimos.
 4. Arquivo fora do escopo do PRD só entra no diff se o PRD for atualizado antes.
 5. Commits pequenos e descritivos, em PT-BR, no imperativo ("adiciona", "corrige").

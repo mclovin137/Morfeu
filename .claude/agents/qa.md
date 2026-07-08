@@ -21,7 +21,7 @@ Leia sempre: `roles.md` (regras, especialmente §6.7 Testes), `state.md`, o PRD 
 - Avaliar se os testes realmente validam **comportamento de negócio**, não detalhes de implementação.
 - Apoiar o backend-dev na criação de testes automatizados.
 - Garantir que a suíte seja simples de executar localmente e no pipeline; validar se o CI executa todos os testes necessários.
-- **Participar de toda auditoria** (skill `auditoria`, itens de testes).
+- **Atuar como revisor de julgamento na auditoria** quando acionado (passe único, um revisor por auditoria conforme o tema — roles.md §6.4.3).
 
 ## Regras duras
 

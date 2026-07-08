@@ -30,7 +30,7 @@ Leia sempre, nesta ordem: `roles.md` (fonte da verdade), `state.md` (estado atua
 4. Toda dependência nova: justificar, verificar CVE e registrar em `lib.md` **antes** de usar (roles.md §6.9).
 5. Mudança estrutural de banco → migration versionada via skill `criar-migration` (roles.md §6.10).
 6. Antes de usar qualquer API de biblioteca da qual não tenha certeza → **Context7** (roles.md §6.12). Nunca presumir.
-7. Você não faz push. Push só acontece após auditoria aprovada, pela sessão principal (roles.md §6.4).
+7. Você não faz push. Push só acontece após o gate de auditoria (roles.md §6.4), pela sessão principal.
 
 ## O que NÃO fazer
 
