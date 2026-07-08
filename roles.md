@@ -51,6 +51,8 @@ Definidos em `.claude/agents/`. Invocação: pedir explicitamente ("consulte o a
 
 **Todos os 5 agentes participam do refinamento de todo épico** (§6.14) — cada um emite parecer do seu domínio, uma vez por épico, antes dos PRDs das tasks.
 
+**Modelos e effort por agente** (frontmatter em `.claude/agents/`): `backend-dev`, `qa`, `security` e `sre-devops` rodam em **Sonnet com effort `medium`** — a inteligência pesada do fluxo vive nas decisões (refinamento, PRD, ADRs), que chegam prontas a esses agentes; o **`arquiteto` herda o modelo da sessão principal** (é o agente de julgamento — decisões de arquitetura e trade-offs). Rotinas headless (hook do vault) rodam em **Haiku**. Alterar modelo/effort de agente é mudança estrutural (§8).
+
 ---
 
 ## 4. Skills
@@ -95,7 +97,21 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 - **Levantamento de 2026-07-07** (stack definida; avaliadas e **não** adotadas): `rabbitmq-expert` (awesomeskill.ai) — centrada em Python/pika, má aderência a Go; RabbitMQ fica coberto por `docs/lib/CACHE-MESSAGING.md` + Context7. `stripe-mcp-skill` (terceiro, pouco mantido) — quando chegar o E6, preferir o **MCP oficial da Stripe** (candidata registrada). Agentes externos (ex.: `golang-pro` do VoltAgent) — rejeitados: colidiriam com o `backend-dev` (executor único); conhecimento Go entra como skill de apoio (§4.2). As demais ~42 skills do samber/cc-skills-golang ficam como pool opcional — vendorizar só com necessidade real (ex.: `golang-performance` no E12, `golang-continuous-integration` no E0c).
 - `canary-watch` / `production-audit` (ECC) — verificação pós-deploy e prontidão de produção; vendorizar quando houver app deployada.
 - `codebase-onboarding` (ECC) — mapa de codebase existente; útil ao aplicar este template em repositório legado.
-- `hookify-rules` / `delivery-gate` (ECC) — candidatas para o enforcement técnico do gate de auditoria (§6.4.5), quando formos implementá-lo.
+- `hookify-rules` / `delivery-gate` (ECC) — candidatas para o enforcement técnico do gate de auditoria (§6.4.6), quando formos implementá-lo.
+
+### 4.4 Uso econômico de skills (regras de consumo)
+
+1. **Carga seletiva:** cada agente carrega no máximo as **1–2 skills diretamente pertinentes** à tarefa — indicadas no brief do refinamento (§6.14.3) e no PRD. Nunca varrer o catálogo "por garantia": cada skill invocada entra inteira no contexto do agente.
+2. **Estacionamento por fase:** skills de fase futura vivem em **`.claude/skills-parked/`** — fora do catálogo, não custam nada em nenhum prompt. Reativar = mover de volta para `.claude/skills/` na task que precisar (mudança trivial, sem cerimônia). Estado atual:
+
+| Skill estacionada | Reativar em |
+|---|---|
+| `frontend-patterns`, `design-system` | E5 (bloco React) |
+| `e2e-testing`, `browser-qa` | E5+ (Playwright entra no topo da pirâmide) |
+| `benchmark` | E12 (teste de carga) |
+| plugin `ui-ux-pro-max` (desabilitado em `.claude/settings.json`) | E5 (voltar a `true`) |
+
+3. As listas do §4.2 permanecem a referência completa — skill estacionada continua listada, com o estado registrado aqui.
 
 ---
 

@@ -1,6 +1,8 @@
 ---
 name: security
 description: Security Engineer deste projeto. Deve ser consultado ao avaliar riscos de segurança de decisões arquiteturais, autenticação/autorização, tratamento de secrets, novas dependências (CVEs) e obrigatoriamente durante a auditoria pré-push.
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 ---
 

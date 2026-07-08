@@ -19,6 +19,7 @@ Detalha uma task antes da implementação. O PRD orienta e delimita: nada é imp
 2. Copie o template `template-prd.md` (nesta pasta) e preencha todas as seções, **incorporando as exigências da task registradas no refinamento do épico** (obrigatório — roles.md §6.14.5).
 3. Seja específico em **Arquivos que serão criados/modificados** — a auditoria compara o diff real contra esta lista.
 4. **Sem nova rodada de agentes** (roles.md §6.2.5): o refinamento do épico já traz os pareceres. Consultar um agente pontualmente só para lacuna real que o refinamento não cobriu.
+5. Indique no PRD as **skills de apoio pertinentes à implementação** (máx. 2–3 — roles.md §4.4): o backend-dev carrega só essas.
 5. Dependência nova prevista? Justifique no PRD e planeje o registro em `lib.md` (roles.md §6.9).
 6. Atualize `state.md` (PRD atual) e `plan.md` (PRD relacionado).
 

@@ -28,6 +28,7 @@ Monte **um único brief** na sessão principal e envie o MESMO texto a todos os 
 - Decisões relevantes do `doc.md` (domínio, fluxos críticos, RNFs que tocam o épico).
 - Trechos dos ADRs pertinentes (não o arquivo inteiro).
 - Estado atual resumido (o que já existe implementado que o épico toca).
+- As **1–2 skills de apoio pertinentes por agente** (roles.md §4.4) — o agente carrega só essas, nunca varre o catálogo.
 
 **Modelo:** pareceres consultivos podem rodar em modelo menor (parâmetro `model` do Agent tool — ex.: `sonnet`); a sessão principal e a implementação permanecem no modelo principal.
 
