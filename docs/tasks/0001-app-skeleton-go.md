@@ -121,10 +121,43 @@ Estrutura base da aplicação Go (app skeleton) com Docker Compose (PostgreSQL +
 - **Usuários**: N/A (dev-only, não chega a produção)
 - **Testes**: Médio (testes de integração obrigatórios para cache)
 
+## Refinamento — 2026-07-08
+
+### Pareceres Consolidados
+
+| Agente | Posição | Comentário |
+|---|---|---|
+| **Arquiteto** | Seguir c/ ressalvas | Encaixe nos ADRs ✓; ambiguidades resolvidas (Redis fallback, HTTPErrorHandler para E1, context propagation padrão) |
+| **SRE/DevOps** | Seguir c/ ressalvas | Docker Compose com healthchecks essencial; 8 exigências incorporadas no PRD (logger, pools, health endpoint) |
+| **Security** | Seguir c/ ressalvas | Dados públicos; dependências validadas; 8 exigências incorporadas (versionamento, .env.example, secrets mascarados, migrations idempotentes) |
+| **QA** | Seguir c/ ressalvas | Plano de Testes gerado (testcontainers, cenários unit+integração); cobertura informativa 60% (gate 80% em E2+) |
+| **Backend-dev** | Seguir c/ ressalvas | **Viabilidade: SIM** (8–12h, 7–8 commits); sem bloqueadores técnicos; 4 ambiguidades resolvidas |
+
+### Debate (Divergências e Resolução)
+
+| # | Divergência | Consenso / Escala |
+|---|---|---|
+| 1 | **Degradação Redis** (erro vs fallback vs retry?) | **CONSENSO: Fallback ao PG + log** (simples, atende E0a; circuit breaker → E1) · Regra: roles.md §1 (anti-overengineering) + §6.6 (graceful degradation) |
+| 2 | **HTTPErrorHandler** (E0a ou E1?) | **CONSENSO: E1** (aqui apenas handlers básicos; error mapping centralizado entra com autenticação) · ADR 0004 governa |
+| 3 | **Context propagation** (trace_id pattern?) | **CONSENSO: Explícito no PRD** (trace_id via context.WithValue, propagado handler→service→db) · ADR 0004 + §6.8 |
+| 4 | **Seedagem** (fake ou TMDB?) | **CONSENSO: Fake** (10 filmes hardcoded com IDs TMDB reais mas dados stub) · Determinístico para testes; TMDB real → E2 |
+| 5 | **Plano de Testes** (cobertura 80% agora?) | **CONSENSO: Informativa 60%** para E0a; gate 80% em E2+ · ADR 0006 §4.2 + roles.md §6.7 |
+| 6 | **Healthchecks** (E0a ou E0d?) | **CONSENSO: SIM, E0a** (GET /health é mínimo para M1) · roadmap M1 (observabilidade base) |
+
+**Resultado:** Todas as divergências resolvidas por **consenso multiagente + regras**. Nenhuma escalada necessária. ✅
+
+### Conclusão
+
+**Task 0001 aprovada para implementação.** Escopo confirmado, ambiguidades resolvidas, 10 exigências consolidadas no PRD `docs/prd/0001-app-skeleton-go.md`. Plano de testes detalhado com testcontainers. Nenhum bloqueador técnico.
+
+**Próximos passos:** Implementação (backend-dev) → Auditoria (security + qa) → Push.
+
+---
+
 ## Próximos passos (após esta task)
 
-1. **Refinamento multiagente** (`refinar-task` — 5 agentes debatem PRD)
-2. **PRD** (`criar-prd` com plano de testes aprovado)
-3. **Implementação** (backend-dev no branch)
-4. **Auditoria pré-push** (security + qa)
+1. ✅ **Refinamento multiagente** (concluído em 2026-07-08 · 5 agentes · decisões convergidas)
+2. ✅ **PRD** (criado em 2026-07-08 · `docs/prd/0001-app-skeleton-go.md`)
+3. **Implementação** (backend-dev no branch feature/0001-app-skeleton-go)
+4. **Auditoria pré-push** (security + qa validam contra PRD)
 5. **Push** + PR + CI/CD (E0c será responsável por finalizá-lo)

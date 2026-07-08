@@ -5,10 +5,10 @@
 ## Task atual
 
 **Task 0001 — App Skeleton Go** (E0a)
-- **Status:** não iniciada → próximo: `/refinar-task`
+- **Status:** refinada ✓ | PRD ✓ → **implementação em progresso**
 - **Branch:** `feature/0001-app-skeleton-go`
-- **PRD:** pendente (será criado após refinamento + aprovação multiagente)
-- **Roadmap:** E0a (Walking skeleton, subtask a)
+- **PRD:** [`docs/prd/0001-app-skeleton-go.md`](../prd/0001-app-skeleton-go.md) (ativo, 2026-07-08)
+- **Roadmap:** E0a (Walking skeleton, subtask a) | Marco M1 (walking skeleton com TLS, CI/CD, observabilidade)
 
 ### Objetivo
 
