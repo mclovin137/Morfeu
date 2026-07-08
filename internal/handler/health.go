@@ -20,11 +20,11 @@ type HealthResponse struct {
 // HealthHandler handles health check requests
 type HealthHandler struct {
 	db    *pgxpool.Pool
-	redis *redis.Client
+	redis redis.Cmdable
 }
 
 // NewHealthHandler creates a new health handler
-func NewHealthHandler(db *pgxpool.Pool, redis *redis.Client) *HealthHandler {
+func NewHealthHandler(db *pgxpool.Pool, redis redis.Cmdable) *HealthHandler {
 	return &HealthHandler{
 		db:    db,
 		redis: redis,
