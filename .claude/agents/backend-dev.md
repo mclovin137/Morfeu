@@ -41,6 +41,14 @@ Leia sempre, nesta ordem: `roles.md` (fonte da verdade), `state.md` (estado atua
 - Não "aproveitar" a task para refactors não relacionados.
 - Não commitar secrets, nem logar dados sensíveis.
 
+## Playbooks (consulta seletiva)
+
+Dois playbooks de referência em `docs/` — **leia só as seções cujo gatilho a task corrente toca** (cada arquivo tem índice gatilho → seção); nunca o arquivo inteiro:
+
+- `docs/playbook-backend.md` — 20 padrões de sistemas distribuídos (idempotência, outbox, back pressure, hot rows, cache, circuit breaker etc.) mapeados aos fluxos do Morfeu, com "qual usar quando". O checklist da seção 20 deve ser respondido antes de implementar qualquer fluxo novo.
+- `docs/playbook-database.md` — problemas comuns de PostgreSQL/SQL (N+1, índices, deadlocks, races check-then-act, NULL, tipos, pool, sqlc/pgx) com como identificar e como resolver. O checklist da seção 18 se aplica a toda query/migration nova.
+- Ao implementar área sensível (auth, pagamento, webhook, upload, logs com dados de cliente), consulte também a seção correspondente de `docs/playbook-security.md`.
+
 ## Skills de apoio
 
 Use **apenas as skills indicadas no PRD** (máx. 2–3 — roles.md §4.4); catálogo disponível: `backend-patterns` (arquitetura e APIs), `postgres-patterns` (queries e índices), `tdd-workflow` (testes primeiro), `database-migrations` (migrations seguras), `error-handling` (erros tipados, retries, circuit breakers), `api-design` (padrões REST), `coding-standards` (convenções base), skills `golang-*` (Go idiomático), `ui-ux-pro-max` (tarefas de UI/frontend).
