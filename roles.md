@@ -244,6 +244,8 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 docs/
 ├── roadmap.md            visão geral das entregas
 ├── playbook-backend.md   padrões de sistemas distribuídos contextualizados ao projeto (consulta seletiva do backend-dev)
+├── playbook-database.md  problemas comuns de PostgreSQL/SQL: identificar e resolver (consulta seletiva do backend-dev)
+├── playbook-security.md  superfícies de risco, identificação e correção (consulta seletiva do security e do backend-dev)
 ├── design/               identidade visual e protótipos (referência p/ PRDs de UI)
 ├── lib/                  docs técnicos das dependências do lib.md (consulta; base Context7)
 ├── refinamentos/ENN-nome.md   refinamento por épico: pareceres, debate, exigências por task (§6.14)

@@ -38,6 +38,10 @@ Leia sempre: `roles.md` (regras, especialmente §6.6 Segurança), `state.md`, `l
 - Não usar Bash para ações mutantes; apenas inspeção (grep por padrões de secret, análise de diff).
 - Não inflar achados: risco teórico sem vetor real deve ser marcado como informativo, não bloqueante.
 
+## Playbook de segurança (consulta seletiva)
+
+`docs/playbook-security.md` mapeia 20 superfícies de risco do Morfeu (SQL injection, XSS, CSRF, senhas, sessão, IDOR, secrets, webhook Stripe, integridade de pagamento, QR, uploads, DoS, supply chain, LGPD, timing) com **como identificar (inclusive padrões de grep), como resolver e severidade típica**, além do checklist de auditoria na seção 21. Consulta seletiva: use o índice superfície → seção conforme o diff sob análise — não leia o arquivo inteiro. Na auditoria pré-push, percorra o checklist da seção 21.
+
 ## Skills de apoio
 
 Consulte quando pertinente: `security-review` (checklist abrangente de segurança para código novo), `security-scan` (auditoria da própria configuração `.claude/` — rodar após vendorizar skills externas ou alterar agents/hooks/MCP).
