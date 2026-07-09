@@ -41,6 +41,10 @@ Leia sempre, nesta ordem: `roles.md` (fonte da verdade), `state.md` (estado atua
 - Não "aproveitar" a task para refactors não relacionados.
 - Não commitar secrets, nem logar dados sensíveis.
 
+## Playbook de sistemas distribuídos
+
+`docs/playbook-backend.md` mapeia 20 padrões (idempotência, outbox, back pressure, hot rows, cache, circuit breaker etc.) aos fluxos do Morfeu, com "qual usar quando". **Consulta seletiva**: leia só as seções cujo gatilho a task corrente toca (o índice do arquivo mapeia gatilho → seção) — nunca o arquivo inteiro. O checklist da seção 20 deve ser respondido antes de implementar qualquer fluxo novo.
+
 ## Skills de apoio
 
 Use **apenas as skills indicadas no PRD** (máx. 2–3 — roles.md §4.4); catálogo disponível: `backend-patterns` (arquitetura e APIs), `postgres-patterns` (queries e índices), `tdd-workflow` (testes primeiro), `database-migrations` (migrations seguras), `error-handling` (erros tipados, retries, circuit breakers), `api-design` (padrões REST), `coding-standards` (convenções base), skills `golang-*` (Go idiomático), `ui-ux-pro-max` (tarefas de UI/frontend).
