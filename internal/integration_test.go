@@ -257,7 +257,7 @@ func TestCacheHitMissWithRedis(t *testing.T) {
 	defer redisClient.Close()
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := catalogo.NewFilmService(pool, cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
 
 	// First request should miss cache and hit database
 	films1, err := svc.ListFilms(ctx)
@@ -321,7 +321,7 @@ func TestGracefulDegradationRedisUnavailable(t *testing.T) {
 	})
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := catalogo.NewFilmService(pool, cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
 
 	// Should fall back to database
 	films, err := svc.ListFilms(ctx)
@@ -372,7 +372,7 @@ func TestListFilmsE2E_FullStack(t *testing.T) {
 	defer redisClient.Close()
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := catalogo.NewFilmService(pool, cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
 
 	// Full stack test: cache miss → database
 	films, err := svc.ListFilms(ctx)

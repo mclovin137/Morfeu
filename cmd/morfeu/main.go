@@ -20,6 +20,7 @@ import (
 
 	"github.com/mclovin137/morfeu/internal/cache"
 	"github.com/mclovin137/morfeu/internal/catalogo"
+	catalogodb "github.com/mclovin137/morfeu/internal/catalogo/db"
 	"github.com/mclovin137/morfeu/internal/config"
 	"github.com/mclovin137/morfeu/internal/health"
 	"github.com/mclovin137/morfeu/internal/logger"
@@ -78,7 +79,7 @@ func main() {
 	cacheLayer := cache.NewRedisCache(redisClient, log.Logger)
 
 	// Create service layer
-	filmService := catalogo.NewFilmService(dbPool, cacheLayer, log.Logger)
+	filmService := catalogo.NewFilmService(catalogodb.New(dbPool), cacheLayer, log.Logger)
 
 	// Create handlers
 	filmHandler := catalogo.NewFilmHandler(filmService)
