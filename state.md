@@ -6,9 +6,9 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 **Descoberta concluída (2026-07-06).** Morfeu definido: **venda de ingressos de cinema online** (portfólio/aprendizado, dev solo, 10–12h/sem, horizonte 7–9 meses). Stack: Go + Echo, sqlc + pgx/v5, PostgreSQL (fonte da verdade, inclusive trava de assento), Redis (cache), RabbitMQ (saga do checkout), React + Vite, VM Oracle Always Free (PAYG), observabilidade self-hosted, k6. Artefatos gerados: `doc.md` (mini-UML), `lib.md` (stack `planejada`, validada Context7/OSV), `docs/roadmap.md` (E0–E12, marcos M1–M5).
 
-- **Última task concluída:** 0001 (App Skeleton Go — E0a) — implementada, auditada e **mergeada na main** (merge `6916ab6`, 2026-07-08). **Fix emergencial 2026-07-10** (`fix/e0a-build-quebrado`, `ab70d13`): a E0a mergeada **nunca tinha compilado** (go.sum ausente, erros de compilação em produção e testes, cache sem TTL vs. CA05, mocks vedados pelo ADR 0006) — corrigido, suíte verde com `-race`; expôs na prática a urgência do E0c-CI.
+- **Última task concluída:** 0001 (App Skeleton Go — E0a) — implementada, auditada e **mergeada na main** (merge `6916ab6`, 2026-07-08). **Fix emergencial concluído e mergeado 2026-07-10** (PR #3, merge `fa2a136`): a E0a mergeada **nunca tinha compilado** (go.sum ausente, erros de compilação em produção e testes, cache sem TTL vs. CA05, mocks vedados pelo ADR 0006) — corrigido, suíte verde com `-race`, auditoria APROVADA (passe de julgamento `qa`, registrado no plan.md); expôs na prática a urgência do E0c-CI. Achado não-bloqueante da auditoria (teste HTTP real de `GET /filmes`) anexado à task de conformidade.
 - **Épico E0 refinado (2026-07-09):** cerimônia por épico (§6.14) em `docs/refinamentos/E0-walking-skeleton.md` — 5 pareceres "seguir com ressalvas"; task 0002 reescopada (corte de `FilmUpdated`, fronteiras plataforma×domínio, publisher confirms, CLI admin); proposta de dividir E0c em **E0c-CI** e **E0c-CD**; **2 perguntas escaladas ao usuário** (aval da reordenação do épico; autorização do ADR de mensageria RabbitMQ) — bloqueiam os PRDs de E0b/E0c/E0d até resposta.
-- **Task atual (em preparação):** task de conformidade pré-E0b — realinhamento package-by-domain (drift da E0a vs. ADR 0003); não bloqueada pelas perguntas escaladas.
+- **Task atual:** **0003 — Conformidade package-by-domain** (pré-E0b, branch `refactor/0003-conformidade-package-by-domain`, criada 2026-07-10): realinhamento ao ADR 0003 + teste HTTP real de `GET /filmes` (exigência da auditoria do fix). Não bloqueada pelas perguntas escaladas. Numeração: 0002 segue reservada à E0b (referências existentes).
 - **PRD atual:** nenhum ativo (PRD da 0002 aguarda respostas do refinamento E0)
 - **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — todos aceitos em 2026-07-07 com autorização explícita. Candidata **"Mensageria: RabbitMQ" proposta no refinamento do E0 (aguarda autorização)**; restantes (trava de assento, saga) nascem nos refinamentos E4/E6.
 
@@ -46,12 +46,13 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 2. **Item 0 do roadmap** (ação do usuário, iniciar já — capacidade A1 é loteria): conta Oracle PAYG + VM A1; mover repo p/ WSL ext4.
 3. Task de conformidade pré-E0b (não bloqueada): `/criar-task` → PRD → implementação (realinhamento package-by-domain, ADR 0003).
 4. Após respostas: PRD da 0002 (E0b) consumindo as exigências do refinamento (+ ADR de mensageria, se autorizado) → implementação.
-5. Mergear a branch `chore/playbook-backend-distribuido` (pushada, aguarda PR/merge) e esta (`chore/refinamento-epico-e0`).
+5. ~~Mergear `chore/playbook-backend-distribuido` e `chore/refinamento-epico-e0`~~ → feito: PR #2 (2026-07-09) e PR #3 (2026-07-10, via `fix/e0a-build-quebrado`); branches locais/remotas limpas.
 
 ## Histórico resumido
 
 | Data | Evento |
 |------|--------|
+| 2026-07-10 | **Fix do build da E0a mergeado** (PR #3, `fa2a136`): skeleton mergeado nunca compilava — build restaurado, TTL do cache conforme CA05, mocks vedados removidos, suíte verde com `-race`; auditoria APROVADA. Playbooks (PR #2) também na main. |
 | 2026-07-09 | **Épico E0 refinado** (primeira cerimônia por épico, §6.14): 5 pareceres, task 0002 reescopada, divisão E0c-CI/E0c-CD proposta, ADR de mensageria proposto; 2 perguntas escaladas ao usuário. |
 | 2026-07-08 | **Task 0001 (E0a) concluída e mergeada**: app skeleton Go (compose PG/Redis, migrations, GET /filmes com cache read-through), 14 commits, auditoria + correção de 9 bloqueadores. |
 | 2026-07-08 | **Governança de economia de tokens**: refinamento por épico, gate híbrido de auditoria (CI + passe único de julgamento), PRD just-in-time, vault sem duplicação; arquiteto ampliado; descoberta com design/trade-offs/prioridades/skills/ADRs iniciais. |

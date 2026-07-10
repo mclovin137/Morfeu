@@ -2,11 +2,11 @@
 
 > Este arquivo é o plano vivo da task corrente **do projeto** — não confundir com o *plan mode* do Claude Code (que grava em `~/.claude/plans/`). Atualizado durante a implementação; reflete o estado real (regras em `roles.md` §6.11).
 
-## Estado corrente (2026-07-09)
+## Estado corrente (2026-07-10)
 
-**Task 0001 — App Skeleton Go (E0a): CONCLUÍDA e mergeada na main** (merge `6916ab6`, 14 commits, ~2.200 LOC; histórico detalhado no arquivo da task `docs/tasks/0001-app-skeleton-go.md` e no histórico deste arquivo no git).
+**Task 0003 — Conformidade package-by-domain (pré-E0b): NÃO INICIADA** (branch `refactor/0003-conformidade-package-by-domain`; arquivo `docs/tasks/0003-conformidade-package-by-domain.md`). Objetivo: realinhar a E0a ao layout do ADR 0003 (catálogo → `internal/catalogo/`, `cmd/app` → `cmd/morfeu`, plataforma explícita, `depguard`, `sqlc.yaml`/Makefile) + teste HTTP real de `GET /filmes` (exigência da auditoria de 2026-07-10). ~12–16 arquivos previstos. Critério central: suíte da E0a passa sem alteração de asserts. Próximo passo: PRD (`criar-prd`) consumindo o refinamento do E0 (épico já refinado — dispensa nova cerimônia).
 
-**Épico E0 refinado (2026-07-09)** — cerimônia por épico (roles.md §6.14) registrada em [`docs/refinamentos/E0-walking-skeleton.md`](docs/refinamentos/E0-walking-skeleton.md): 5 pareceres (todos "seguir com ressalvas"), debate com 5 divergências resolvidas por consenso e **2 perguntas escaladas ao usuário**.
+Contexto anterior: **task 0001 (E0a) concluída e mergeada** (merge `6916ab6`); **fix emergencial do build mergeado** (PR #3, `fa2a136`, 2026-07-10 — auditoria APROVADA abaixo). **Épico E0 refinado (2026-07-09)** — cerimônia por épico (roles.md §6.14) registrada em [`docs/refinamentos/E0-walking-skeleton.md`](docs/refinamentos/E0-walking-skeleton.md): 5 pareceres, 5 divergências resolvidas e **2 perguntas escaladas ao usuário**.
 
 ### Perguntas escaladas ao usuário (bloqueiam os PRDs afetados — §6.14.7)
 
@@ -18,9 +18,14 @@
 
 Ao preparar a task de conformidade, descobriu-se que **a E0a mergeada nunca compilou**: `go.sum` ausente do repo, erros de compilação em produção (`models.go`, `main.go`) e em TODOS os arquivos de teste, testcontainers 0.31.0 incompatível com o grafo de deps, cache gravado **sem TTL** (violando CA05 do PRD 0001) e testes de handler com mock camada a camada (vedado pelo ADR 0006) quebrados por NPE. Nada disso foi detectado porque não havia toolchain Go no ambiente e o CI é placeholder — evidência concreta da prioridade do E0c-CI. Corrigido: suíte completa verde com `-race` (unit + integração com testcontainers reais). Toolchain Go 1.24.5 instalado user-level em `~/.local/go`; `-race` roda via container `golang:1.25` (sem gcc no WSL); lib.md atualizado (Go 1.25 implementada; testcontainers v0.43.0).
 
-### Próxima task em preparação
+### Plano da task 0003 (status: não iniciada — aguarda PRD)
 
-**Task de conformidade (pré-E0b)** — realinhamento package-by-domain (ADR 0003): mover catálogo para `internal/catalogo/`, `cmd/app` → `cmd/morfeu`, plataforma explícita, `depguard` ativo. **Não bloqueada** pelas perguntas acima (corrige drift contra ADR já aceito; coberta pelo refinamento do E0 — dispensa nova cerimônia). Critério de aceite único: suíte da E0a passa sem alteração de asserts. **+ Exigência da auditoria de 2026-07-10** (achado não-bloqueante): criar teste de integração real para `GET /filmes` no nível HTTP (padrão `health_test.go`: testcontainers + `httptest` + echo real, cobrindo RF03/CA04 — status 200 e `Content-Type: application/json`) e corrigir o comentário de `internal/handler/film_test.go` que afirma cobertura inexistente.
+1. PRD 0003 (`criar-prd`) consumindo `docs/refinamentos/E0-walking-skeleton.md` §"Task de conformidade" — listar explicitamente todos os arquivos movidos/renomeados (exigência do refinamento).
+2. Movimentação package-by-domain em blocos verificáveis (`go build ./...` + suíte a cada bloco): catálogo → `internal/catalogo/`; `cmd/app` → `cmd/morfeu`; plataforma explícita.
+3. `sqlc.yaml` (paths por módulo) + regeneração sem diff manual; Makefile.
+4. `depguard` no `.golangci.yml` (módulo↛módulo; domínio↛driver de infra); rodar via container (sem golangci-lint local — enforcement definitivo no E0c-CI).
+5. Teste de integração HTTP real de `GET /filmes` (padrão `health_test.go`; RF03/CA04: 200 + `Content-Type: application/json`) + correção do comentário enganoso em `film_test.go` (exigência da auditoria de 2026-07-10).
+6. Gate: critério central = suíte da E0a sem alteração de asserts; auditoria pré-push; PR.
 
 ## Auditorias
 
