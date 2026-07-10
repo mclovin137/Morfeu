@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/mclovin137/morfeu/internal/cache"
-	"github.com/mclovin137/morfeu/internal/db"
-	"github.com/mclovin137/morfeu/internal/service"
+	"github.com/mclovin137/morfeu/internal/catalogo"
+	"github.com/mclovin137/morfeu/internal/catalogo/db"
 )
 
 // TestCacheHitMiss_FirstRequestMisses validates that first request hits DB and caches result
@@ -58,7 +58,7 @@ func TestCacheHitMiss_FirstRequestMisses(t *testing.T) {
 	redisClient.FlushDB(ctx)
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request should miss cache
 	start := time.Now()
@@ -140,7 +140,7 @@ func TestCacheHitMiss_SecondRequestHits(t *testing.T) {
 	redisClient.FlushDB(ctx)
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request (cache miss)
 	_, err = svc.ListFilms(ctx)
@@ -218,7 +218,7 @@ func TestCacheTTLRespected(t *testing.T) {
 	redisClient.FlushDB(ctx)
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request to populate cache
 	_, err = svc.ListFilms(ctx)
