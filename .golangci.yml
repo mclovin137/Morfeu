@@ -1,9 +1,11 @@
+version: "2"
+
 run:
   timeout: 5m
-  deadline: 10m
   tests: true
 
 linters:
+  default: standard
   enable:
     - errcheck
     - govet
@@ -19,51 +21,78 @@ linters:
     - sqlclosecheck
     - depguard
     - exhaustive
-  disable-all: false
 
-linters-settings:
-  gocognit:
-    min-complexity: 15
+  settings:
+    gocognit:
+      min-complexity: 15
 
-  funlen:
-    lines: 80
-    statements: 50
+    funlen:
+      lines: 80
+      statements: 50
 
-  nestif:
-    min-complexity: 5
+    nestif:
+      min-complexity: 5
 
-  revive:
-    ignore-generated-header: true
-    severity: error
-    rules:
-      - name: blank-imports
-        severity: error
-      - name: context-as-argument
-        severity: error
-      - name: context-keys-type
-        severity: error
-      - name: early-return
-        severity: warning
-      - name: indent-error-flow
-        severity: warning
-      - name: superfluous-else
-        severity: warning
+    revive:
+      ignore-generated-header: true
+      severity: error
+      rules:
+        - name: blank-imports
+          severity: error
+        - name: context-as-argument
+          severity: error
+        - name: context-keys-type
+          severity: error
+        - name: early-return
+          severity: warning
+        - name: indent-error-flow
+          severity: warning
+        - name: superfluous-else
+          severity: warning
 
-  depguard:
-    rules:
-      main:
-        deny:
-          - name: io/ioutil
-            recommendations:
-              - io
-              - os
+    depguard:
+      rules:
+        # Regra geral: biblioteca legada proibida em todo o módulo.
+        main:
+          list-mode: lax
+          deny:
+            - pkg: "io/ioutil"
+              desc: "use io ou os no lugar de io/ioutil"
+
+        # Fronteiras do ADR 0003 (§Decisão, regra 4) para o módulo de domínio catalogo:
+        # (1) módulo não importa módulo — só o que está no allow é permitido (regra
+        #     nasce pronta para quando E0b adicionar outros módulos de domínio);
+        # (2) domínio não importa driver de infra direto — pgx e go-redis só no
+        #     internal/catalogo/db gerado (fora deste glob) e em internal/cache
+        #     (plataforma, importado via interface cache.Cache).
+        catalogo-domain:
+          files:
+            - "**/internal/catalogo/*.go"
+          list-mode: strict
+          allow:
+            - $gostd
+            - github.com/labstack/echo/v4
+            - github.com/google/uuid
+            - go.uber.org/zap
+            - github.com/mclovin137/morfeu/internal/cache
+            - github.com/mclovin137/morfeu/internal/catalogo/db
+          deny:
+            - pkg: "github.com/jackc/pgx/v5"
+              desc: "domínio catalogo não importa driver pgx direto — depende do DAO gerado internal/catalogo/db"
+            - pkg: "github.com/redis/go-redis/v9"
+              desc: "domínio catalogo não importa driver redis direto — depende de internal/cache"
+
+  exclusions:
+    generated: strict
 
 issues:
-  exclude-use-default: false
   max-same-issues: 10
-  max-per-linter: 100
+  max-issues-per-linter: 100
 
 output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+  formats:
+    text:
+      path: stdout
+      colors: true
+      print-issued-lines: true
+      print-linter-name: true
