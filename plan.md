@@ -2,120 +2,29 @@
 
 > Este arquivo é o plano vivo da task corrente **do projeto** — não confundir com o *plan mode* do Claude Code (que grava em `~/.claude/plans/`). Atualizado durante a implementação; reflete o estado real (regras em `roles.md` §6.11).
 
-## Task atual
+## Estado corrente (2026-07-09)
 
-**Task 0001 — App Skeleton Go** (E0a)
-- **Status:** refinada ✓ | PRD ✓ | **implementação completa (8 commits) + correções bloqueadores (6 commits)**
-- **Branch:** `feature/0001-app-skeleton-go`
-- **PRD:** [`docs/prd/0001-app-skeleton-go.md`](../prd/0001-app-skeleton-go.md) (ativo, 2026-07-08)
-- **Roadmap:** E0a (Walking skeleton, subtask a) | Marco M1 (walking skeleton com TLS, CI/CD, observabilidade)
-- **Implementação:** 2026-07-08 10:50–14:00 (8 commits iniciais + 6 commits de correção de bloqueadores)
+**Task 0001 — App Skeleton Go (E0a): CONCLUÍDA e mergeada na main** (merge `6916ab6`, 14 commits, ~2.200 LOC; histórico detalhado no arquivo da task `docs/tasks/0001-app-skeleton-go.md` e no histórico deste arquivo no git).
 
-### Objetivo
+**Épico E0 refinado (2026-07-09)** — cerimônia por épico (roles.md §6.14) registrada em [`docs/refinamentos/E0-walking-skeleton.md`](docs/refinamentos/E0-walking-skeleton.md): 5 pareceres (todos "seguir com ressalvas"), debate com 5 divergências resolvidas por consenso e **2 perguntas escaladas ao usuário**.
 
-Estrutura base da aplicação Go (app skeleton) com Docker Compose (PostgreSQL + Redis), sistema de migrations (golang-migrate), e um endpoint de exemplo `GET /filmes` servindo dados do banco com cache read-through — pronta para adicionar lógica de negócio.
+### Perguntas escaladas ao usuário (bloqueiam os PRDs afetados — §6.14.7)
 
-### Escopo
+1. **Aval para reordenar o épico**: dividir E0c em **E0c-CI** (pipeline de gates + build ARM64, sem dependência externa — peça do gate híbrido §6.4) e **E0c-CD** (deploy + Caddy/TLS + smoke, bloqueada pela VM Oracle), com sequência **conformidade → E0c-CI → E0b → E0c-CD → E0d**. Bloqueia os PRDs de E0b/E0c/E0d na nova ordem.
+2. **Autorização para criar o ADR "Mensageria: RabbitMQ"** (roles.md §6.1) — o refinamento recomenda que exista antes/junto do PRD da task 0002 (E0b). Bloqueia o PRD da 0002.
+3. (Ação do usuário, não bloqueia PRDs) **Item 0**: iniciar criação da conta Oracle PAYG + VM A1 — única dependência externa do M1.
 
-1. **Estrutura Go** (`main.go`, handlers, config, logger)
-2. **Docker Compose** (PG + Redis)
-3. **Migrations** (golang-migrate com seed)
-4. **Handler `GET /filmes`** (cache read-through Redis, TTL 5 min)
-5. **Integração mínima** (pgx, go-redis, sqlc, error logging)
+### Fix emergencial (2026-07-10, branch `fix/e0a-build-quebrado`, commit `ab70d13`)
 
-### Arquivos (estimativa: ~15)
+Ao preparar a task de conformidade, descobriu-se que **a E0a mergeada nunca compilou**: `go.sum` ausente do repo, erros de compilação em produção (`models.go`, `main.go`) e em TODOS os arquivos de teste, testcontainers 0.31.0 incompatível com o grafo de deps, cache gravado **sem TTL** (violando CA05 do PRD 0001) e testes de handler com mock camada a camada (vedado pelo ADR 0006) quebrados por NPE. Nada disso foi detectado porque não havia toolchain Go no ambiente e o CI é placeholder — evidência concreta da prioridade do E0c-CI. Corrigido: suíte completa verde com `-race` (unit + integração com testcontainers reais). Toolchain Go 1.24.5 instalado user-level em `~/.local/go`; `-race` roda via container `golang:1.25` (sem gcc no WSL); lib.md atualizado (Go 1.25 implementada; testcontainers v0.43.0).
 
-| Arquivo | Tipo | Nota |
-|---|---|---|
-| `cmd/app/main.go` | novo | entry point |
-| `internal/config/config.go` | novo | env config |
-| `internal/handler/film.go` | novo | handler GET /filmes |
-| `internal/logger/logger.go` | novo | structured logger |
-| `internal/cache/redis.go` | novo | cache layer |
-| `internal/db/queries.sql` | novo | sqlc queries |
-| `internal/db/queries.sql.go` | gerado | sqlc output |
-| `internal/db/models.go` | gerado | sqlc output |
-| `migrations/001_initial_schema.up.sql` | novo | schema + seed |
-| `migrations/001_initial_schema.down.sql` | novo | rollback |
-| `docker-compose.yml` | novo | PG + Redis |
-| `.env.example` | novo | env template |
-| `Dockerfile` | novo | multi-stage build |
-| `go.mod` | update | add deps |
-| `go.sum` | update | lock versions |
-| `Makefile` | novo | compose/migrate/run targets |
+### Próxima task em preparação
 
-### Dependências
-
-- `github.com/labstack/echo/v4` (Echo web framework)
-- `github.com/jackc/pgx/v5` (PG driver)
-- `github.com/sqlc-dev/sqlc` (SQL compiler)
-- `github.com/redis/go-redis/v9` (Redis client)
-- `github.com/golang-migrate/migrate/v4` (migrations)
-- `go.uber.org/zap` (logging)
-
-### Critérios de aceite
-
-- [x] CA01 — App compila sem erros (`go build ./cmd/app`)
-- [x] CA02 — `docker-compose up` levanta PG + Redis em ~5s com healthchecks
-- [x] CA03 — Migrations rodam: `make migrate` popula `films` com 10 registros, seed aplicada
-- [x] CA04 — GET /filmes retorna JSON array com 10 filmes, status 200, Content-Type application/json
-- [x] CA05 — Cache hit/miss validado: primeira requisição db, segunda cache com logs
-- [x] CA06 — Redis graceful degradation: se Redis cair, fallback ao PG (200 com log warning)
-- [x] CA07 — Logger estruturado: JSON (timestamps RFC3339, trace_id propagado, sem secrets)
-- [x] CA08 — Código passa lint (`golangci-lint run` rules em .golangci.yml)
-- [x] CA09 — Migrations idempotentes: `down; up` sem erro
-- [x] CA10 — .env.example presente, .env gitignored
-- [x] CA11 — GET /health endpoint: `{ "status": "ok", "db": "ok|error", "redis": "ok|error" }`
-- [x] CA12 — README da task: setup, como rodar, diagrama, troubleshoot
-
-## Implementação (Commits)
-
-**Fase 1: Implementação Inicial (8 commits, ~1,660 LOC)**
-
-| # | Commit | Descrição | LOC aprox |
-|---|--------|-----------|----------|
-| 1 | 4f491d3 | Init: go.mod, docker-compose, Dockerfile, main.go stub, Makefile | 150 |
-| 2 | 268af8f | Config + Logger: env parsing, zap structured JSON logger | 200 |
-| 3 | 28ea76c | Migrations: 001_initial_schema (CREATE TABLE films + 10 filmes seed) | 30 |
-| 4 | d7aaf01 | sqlc: queries.sql, models.go, queries.sql.go, config yaml | 170 |
-| 5 | 74b1471 | Handlers: film.go (GET /filmes), health.go (GET /health), testes | 220 |
-| 6 | 7cc4a19 | Service + Cache: film.go service, redis.go cache layer, composição root | 400 |
-| 7 | 69b69eb | Integration tests: testcontainers for PG, database tests | 160 |
-| 8 | 7261c74 | Docs: .golangci.yml lint rules, README.md task, troubleshoot | 330 |
-
-**Fase 2: Correção de Bloqueadores (6 commits, ~540 LOC)**
-
-| # | Commit | Descrição | Bloqueadores |
-|---|--------|-----------|--------------|
-| 9 | 524a292 | Security: docker-compose sem credenciais, .env.docker-compose | #7 |
-| 10 | 3e6f727 | Security: golang-jwt v5.2.2, lib.md atualizado | #8, #9 |
-| 11 | a244f98 | QA: migrations sem ON CONFLICT (idempotência real) | #6 |
-| 12 | 2957a13 | QA: 5 scenarios de integration tests (up/down/up, cache, graceful) | #1-3, #5-6 |
-| 13 | 6f2fefc | QA: 3 scenarios de health endpoint tests (all ok, redis down, db down) | #4 |
-| 14 | 007882e | QA: 3 scenarios de cache hit/miss tests (miss, hit, TTL) | #1 |
-
-**Total** | | **14 commits, ~2,200 LOC (dentro do limite de 30 arquivos)** | |
-
-### Riscos
-
-| Risco | Probabilidade | Impacto | Mitigação |
-|---|---|---|---|
-| Cache miss/inconsistência | Médio | Médio | Testes unitários + TTL 5 min |
-| Docker networking issues | Baixo | Alto | docker-compose test em CI |
-| sqlc code generation issues | Baixo | Médio | Validar schema primeiro |
-| Go modules conflict | Baixo | Médio | Context7 + lib.md check |
-| Port conflicts | Médio | Baixo | compose service names |
-
-### Impacto estimado
-
-- **Código**: Médio (novo, foundation, sem lógica complexa)
-- **Banco**: Baixo (schema trivial, seed fake)
-- **Infra**: Médio (Docker Compose, networking)
-- **Usuários**: N/A (dev-only)
-- **Testes**: Médio (integração obrigatória para cache)
+**Task de conformidade (pré-E0b)** — realinhamento package-by-domain (ADR 0003): mover catálogo para `internal/catalogo/`, `cmd/app` → `cmd/morfeu`, plataforma explícita, `depguard` ativo. **Não bloqueada** pelas perguntas acima (corrige drift contra ADR já aceito; coberta pelo refinamento do E0 — dispensa nova cerimônia). Critério de aceite único: suíte da E0a passa sem alteração de asserts. **+ Exigência da auditoria de 2026-07-10** (achado não-bloqueante): criar teste de integração real para `GET /filmes` no nível HTTP (padrão `health_test.go`: testcontainers + `httptest` + echo real, cobrindo RF03/CA04 — status 200 e `Content-Type: application/json`) e corrigir o comentário de `internal/handler/film_test.go` que afirma cobertura inexistente.
 
 ## Auditorias
 
+- **2026-07-10 — APROVADA** (fix emergencial do build da E0a, branch `fix/e0a-build-quebrado`, 4 commits, 16 arquivos): modelo híbrido §6.4 — mecânicos na sessão principal (gitleaks: 1 falso positivo em doc; govulncheck: 0 exploráveis; 16 ≤ 30 arquivos; go vet ok; suíte completa verde com `-race`, testcontainers reais), julgamento em passe único (`qa`, Sonnet/medium) ✅ em todos os itens: (1) TTL 0→5min ATENDE CA05/RN03 do PRD 0001, validado por `TestCacheTTLRespected` com PTTL; (2) ADR 0004 ok (pgx v5 `ConnConfig` aninhado correto) e ADR 0006 ok (remoção dos mocks camada-a-camada vedados); (3) sem abstração nova; (4/5) 16 arquivos = fix de build + registro do refinamento E0 + controle; (7) containers efêmeros com `defer Terminate` + `FlushDB` por cenário; (9) logs sem URL/credencial/payload; (13) plan/state/lib fiéis ao diff. **Achado não-bloqueante** (pré-existente, fora do escopo do fix): `TestListFilmsE2E_FullStack` chama `svc.ListFilms` direto — o handler HTTP real de `GET /filmes` (RF03/CA04: status 200, `Content-Type: application/json`) não tem teste de integração no padrão de `health_test.go`, e o comentário em `internal/handler/film_test.go:9-10` afirma cobertura que não existe → **registrado como exigência da task de conformidade pré-E0b**. Push liberado.
 - **2026-07-08 — APROVADA** (governança de economia de tokens, branch `chore/governanca-economia-tokens`, 4 commits): primeiro passe no **modelo híbrido novo** (§6.4 — revisor único de julgamento, `security` em Sonnet/medium). Mecânicos na sessão principal: 29 ≤ 30 arquivos, árvore limpa, grep de secrets no diff limpo (gitleaks ausente — instalar segue pendente), sem código Go/deps/migrations (itens 6, 10–12 N/A). Julgamento ✅ em todos: escopo = exatamente os 7 pontos autorizados pelo usuário (§8); sem conflito com ADRs 0001–0006; sem overengineering (mudança REDUZ cerimônia); hook alterado só com `--model haiku` (`--dangerously-skip-permissions` preexistente, pendência conhecida do state.md, sem regressão); settings sem secrets; consistência roles.md × CLAUDE.md × skills × agentes íntegra; numeração §4.4/§6.4.1–6/§6.14.1–8/§6.15.1–8 sem gaps. Sem correções obrigatórias. Push liberado.
 - **2026-07-08 — Correção de Bloqueadores (reauditoria pendente)** (commits `524a292`+`3e6f727`+`a244f98`+`2957a13`+`6f2fefc`+`007882e`): Resolvidos 9 bloqueadores pré-push:
   - **Security** (3 itens): (7) docker-compose sem credenciais versionadas → .env.docker-compose; (8) golang-jwt v5.2.2+ atualizado em go.mod; (9) lib.md com zap, uuid, testcontainers registrados.

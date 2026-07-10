@@ -9,12 +9,12 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/mclovin137/morfeu/internal/cache"
 	"github.com/mclovin137/morfeu/internal/db"
-	"github.com/mclovin137/morfeu/internal/logger"
 	"github.com/mclovin137/morfeu/internal/service"
 )
 
@@ -256,9 +256,8 @@ func TestCacheHitMissWithRedis(t *testing.T) {
 	})
 	defer redisClient.Close()
 
-	cacheLayer := cache.NewRedisCache(redisClient)
-	queries := db.New(pool)
-	svc := service.NewFilmService(queries, cacheLayer)
+	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
+	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request should miss cache and hit database
 	films1, err := svc.ListFilms(ctx)
@@ -321,9 +320,8 @@ func TestGracefulDegradationRedisUnavailable(t *testing.T) {
 		Addr: "localhost:9999", // Unreachable port
 	})
 
-	cacheLayer := cache.NewRedisCache(redisClient)
-	queries := db.New(pool)
-	svc := service.NewFilmService(queries, cacheLayer)
+	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
+	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// Should fall back to database
 	films, err := svc.ListFilms(ctx)
@@ -373,9 +371,8 @@ func TestListFilmsE2E_FullStack(t *testing.T) {
 	})
 	defer redisClient.Close()
 
-	cacheLayer := cache.NewRedisCache(redisClient)
-	queries := db.New(pool)
-	svc := service.NewFilmService(queries, cacheLayer)
+	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
+	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// Full stack test: cache miss → database
 	films, err := svc.ListFilms(ctx)
@@ -390,7 +387,7 @@ func TestListFilmsE2E_FullStack(t *testing.T) {
 	if films[0].Title != "The Shawshank Redemption" {
 		t.Errorf("Expected first film title 'The Shawshank Redemption', got '%s'", films[0].Title)
 	}
-	if films[0].Year != 1994 {
-		t.Errorf("Expected first film year 1994, got %d", films[0].Year)
+	if films[0].Year == nil || *films[0].Year != 1994 {
+		t.Errorf("Expected first film year 1994, got %v", films[0].Year)
 	}
 }

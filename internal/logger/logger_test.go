@@ -3,7 +3,7 @@ package logger
 import (
 	"testing"
 
-	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func TestNewLogger_InfoLevel(t *testing.T) {
@@ -37,7 +37,7 @@ func TestLogger_StringField(t *testing.T) {
 	field := log.String("key", "value")
 
 	// Check that field is of correct type
-	if field.Type != zap.StringType {
+	if field.Type != zapcore.StringType {
 		t.Errorf("Expected String field type, got %v", field.Type)
 	}
 }
@@ -46,7 +46,7 @@ func TestLogger_IntField(t *testing.T) {
 	log := NewLogger("info")
 	field := log.Int("key", 42)
 
-	if field.Type != zap.Int64Type {
+	if field.Type != zapcore.Int64Type {
 		t.Errorf("Expected Int field type, got %v", field.Type)
 	}
 }
@@ -55,7 +55,7 @@ func TestLogger_BoolField(t *testing.T) {
 	log := NewLogger("info")
 	field := log.Bool("key", true)
 
-	if field.Type != zap.BoolType {
+	if field.Type != zapcore.BoolType {
 		t.Errorf("Expected Bool field type, got %v", field.Type)
 	}
 }

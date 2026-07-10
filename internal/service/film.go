@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -10,6 +11,9 @@ import (
 	"github.com/mclovin137/morfeu/internal/cache"
 	"github.com/mclovin137/morfeu/internal/db"
 )
+
+// filmsCacheTTL: PRD 0001 (CA05) — cache read-through com TTL de 5 minutos
+const filmsCacheTTL = 5 * time.Minute
 
 // FilmService handles film-related business logic
 type FilmService struct {
@@ -71,7 +75,7 @@ func (fs *FilmService) ListFilms(ctx context.Context) ([]db.Film, error) {
 
 	// Store in cache for future requests (best effort)
 	if data, err := json.Marshal(films); err == nil {
-		if err := fs.cache.Set(ctx, cacheKey, data, 0); err != nil {
+		if err := fs.cache.Set(ctx, cacheKey, data, filmsCacheTTL); err != nil {
 			fs.logger.Warn("failed to set cache",
 				zap.Error(err),
 			)

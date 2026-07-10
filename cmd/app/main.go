@@ -75,10 +75,10 @@ func main() {
 	log.Info("Migrations completed")
 
 	// Create cache layer
-	cacheLayer := cache.NewRedisCache(redisClient, log)
+	cacheLayer := cache.NewRedisCache(redisClient, log.Logger)
 
 	// Create service layer
-	filmService := service.NewFilmService(dbPool, cacheLayer, log)
+	filmService := service.NewFilmService(dbPool, cacheLayer, log.Logger)
 
 	// Create handlers
 	filmHandler := handler.NewFilmHandler(filmService)
@@ -137,7 +137,7 @@ func createDBPool(cfg *config.Config, log *logger.Logger) (*pgxpool.Pool, error)
 	poolConfig.MaxConns = int32(cfg.PoolMaxSize)
 	poolConfig.MaxConnLifetime = time.Minute * 15
 	poolConfig.MaxConnIdleTime = time.Minute * 5
-	poolConfig.ConnectTimeout = cfg.PoolTimeout
+	poolConfig.ConnConfig.ConnectTimeout = cfg.PoolTimeout
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {

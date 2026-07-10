@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 
 	"github.com/mclovin137/morfeu/internal/cache"
 	"github.com/mclovin137/morfeu/internal/db"
@@ -56,9 +57,8 @@ func TestCacheHitMiss_FirstRequestMisses(t *testing.T) {
 	// Flush Redis to ensure cache is empty
 	redisClient.FlushDB(ctx)
 
-	cacheLayer := cache.NewRedisCache(redisClient)
-	queries := db.New(pool)
-	svc := service.NewFilmService(queries, cacheLayer)
+	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
+	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request should miss cache
 	start := time.Now()
@@ -139,9 +139,8 @@ func TestCacheHitMiss_SecondRequestHits(t *testing.T) {
 	// Flush Redis to ensure cache is empty
 	redisClient.FlushDB(ctx)
 
-	cacheLayer := cache.NewRedisCache(redisClient)
-	queries := db.New(pool)
-	svc := service.NewFilmService(queries, cacheLayer)
+	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
+	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request (cache miss)
 	_, err = svc.ListFilms(ctx)
@@ -166,7 +165,7 @@ func TestCacheHitMiss_SecondRequestHits(t *testing.T) {
 	t.Logf("Second request (cache hit) took %v", duration)
 
 	// Verify cache entry still exists with TTL
-	ttl, err := redisClient.TTL(ctx, "films:list").Result()
+	ttl, err := redisClient.PTTL(ctx, "films:list").Result()
 	if err != nil {
 		t.Fatalf("Failed to get TTL: %v", err)
 	}
@@ -218,9 +217,8 @@ func TestCacheTTLRespected(t *testing.T) {
 	// Flush Redis to ensure cache is empty
 	redisClient.FlushDB(ctx)
 
-	cacheLayer := cache.NewRedisCache(redisClient)
-	queries := db.New(pool)
-	svc := service.NewFilmService(queries, cacheLayer)
+	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
+	svc := service.NewFilmService(pool, cacheLayer, zap.NewNop())
 
 	// First request to populate cache
 	_, err = svc.ListFilms(ctx)
@@ -229,7 +227,7 @@ func TestCacheTTLRespected(t *testing.T) {
 	}
 
 	// Verify cache has entry with TTL
-	ttl1, err := redisClient.TTL(ctx, "films:list").Result()
+	ttl1, err := redisClient.PTTL(ctx, "films:list").Result()
 	if err != nil {
 		t.Fatalf("Failed to get initial TTL: %v", err)
 	}
@@ -242,7 +240,7 @@ func TestCacheTTLRespected(t *testing.T) {
 
 	// Wait and check TTL decreased
 	time.Sleep(100 * time.Millisecond)
-	ttl2, err := redisClient.TTL(ctx, "films:list").Result()
+	ttl2, err := redisClient.PTTL(ctx, "films:list").Result()
 	if err != nil {
 		t.Fatalf("Failed to get second TTL: %v", err)
 	}
