@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/mclovin137/morfeu/internal/cache"
-	"github.com/mclovin137/morfeu/internal/db"
+	"github.com/mclovin137/morfeu/internal/catalogo/db"
 )
 
 // filmsCacheTTL: PRD 0001 (CA05) — cache read-through com TTL de 5 minutos

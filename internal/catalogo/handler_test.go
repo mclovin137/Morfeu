@@ -3,7 +3,7 @@ package catalogo
 import (
 	"testing"
 
-	"github.com/mclovin137/morfeu/internal/db"
+	"github.com/mclovin137/morfeu/internal/catalogo/db"
 )
 
 // O caminho handler→service se prova em integração (TestListFilmsE2E_FullStack),
