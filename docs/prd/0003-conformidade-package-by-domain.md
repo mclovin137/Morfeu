@@ -108,6 +108,17 @@ Eliminar o drift package-by-layer da E0a (pacotes `internal/handler`, `internal/
 
 Nenhuma nova (`lib.md` inalterado). `depguard` é linter embutido no golangci-lint (ferramenta, não dependência do módulo); golangci-lint roda via container.
 
+## Nota de implementação (2026-07-10 — desvios descobertos, regra de manutenção do PRD)
+
+Pré-condições descobertas durante a implementação — nenhuma é feature nova nem muda comportamento observável; todas eram necessárias para os próprios critérios de aceite (CA03/CA04/CA06). Mesmo padrão do fix emergencial: configs que nunca tinham sido executadas de verdade.
+
+1. **`sqlc.yaml` estava em formato v1 inválido** (nunca rodou; o "gerado" anterior era manual) → migrado para `version: "2"`. Sem isso CA04 era inalcançável.
+2. **`.golangci.yml` idem** — rejeitado pelo golangci-lint 2.12.2 → migrado para config v2; depguard com regra única `catalogo-domain` (allowlist `strict`) cobrindo as duas fronteiras do ADR 0003; `_test.go` excluídos (ADR 0006 usa testcontainers reais).
+3. **Dockerfile** com `golang:1.21-alpine`, incompatível com `go.mod go 1.25.0` (`docker build` já falhava antes da task) → `golang:1.25-alpine` (necessário p/ CA06).
+4. **`NewFilmService(*pgxpool.Pool)` → `NewFilmService(*db.Queries)`** — sem isso o depguard baniria a construção do próprio service (domínio recebendo driver cru); wiring ajustado em `cmd/morfeu/main.go` e testes de integração (`db.New(pool)`), zero assert alterado.
+
+Arquivos adicionais tocados por esta nota: nenhum além dos já listados (sqlc.yaml, .golangci.yml, Dockerfile, service.go, main.go, testes de integração já previstos).
+
 ## Impactos técnicos
 
 - Import paths internos mudam (`internal/handler|service|db` → `internal/catalogo`, `internal/health`); nenhum contrato externo muda.
