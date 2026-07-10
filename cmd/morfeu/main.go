@@ -21,6 +21,7 @@ import (
 	"github.com/mclovin137/morfeu/internal/cache"
 	"github.com/mclovin137/morfeu/internal/config"
 	"github.com/mclovin137/morfeu/internal/handler"
+	"github.com/mclovin137/morfeu/internal/health"
 	"github.com/mclovin137/morfeu/internal/logger"
 	"github.com/mclovin137/morfeu/internal/service"
 )
@@ -82,7 +83,7 @@ func main() {
 
 	// Create handlers
 	filmHandler := handler.NewFilmHandler(filmService)
-	healthHandler := handler.NewHealthHandler(dbPool, redisClient)
+	healthHandler := health.NewHealthHandler(dbPool, redisClient)
 
 	// Create Echo instance
 	e := echo.New()
