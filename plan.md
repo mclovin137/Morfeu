@@ -4,7 +4,31 @@
 
 ## Estado corrente (2026-07-10)
 
-**Task 0003 — Conformidade package-by-domain (pré-E0b): PRD ATIVO, implementação a iniciar** (branch `refactor/0003-conformidade-package-by-domain`; task `docs/tasks/0003-conformidade-package-by-domain.md`; **PRD `docs/prd/0003-conformidade-package-by-domain.md`**, criado 2026-07-10 consumindo o refinamento do E0). Objetivo: realinhar a E0a ao layout do ADR 0003 (catálogo → `internal/catalogo/`, health → `internal/health/`, `cmd/app` → `cmd/morfeu`, `depguard`, `sqlc.yaml`/Makefile/Dockerfile) + teste HTTP real de `GET /filmes` (exigência da auditoria de 2026-07-10). ~21 arquivos tocados ≤ 30 (lista exata no PRD). Critério central: suíte da E0a passa sem alteração de asserts.
+**Task 0003 — Conformidade package-by-domain (pré-E0b): IMPLEMENTADA, aguardando auditoria** (branch `refactor/0003-conformidade-package-by-domain`; task `docs/tasks/0003-conformidade-package-by-domain.md`; **PRD `docs/prd/0003-conformidade-package-by-domain.md`**, criado 2026-07-10 consumindo o refinamento do E0). Objetivo: realinhar a E0a ao layout do ADR 0003 (catálogo → `internal/catalogo/`, health → `internal/health/`, `cmd/app` → `cmd/morfeu`, `depguard`, `sqlc.yaml`/Makefile/Dockerfile) + teste HTTP real de `GET /filmes` (exigência da auditoria de 2026-07-10). Critério central: suíte da E0a passa sem alteração de asserts — **confirmado** (ver diffs dos commits de movimentação: só imports/paths mudaram).
+
+### Implementação concluída (2026-07-10) — 8 commits, 12 arquivos tocados
+
+1. `855898f` — `cmd/app` → `cmd/morfeu`.
+2. `95f72a8` — `internal/handler/health*` → `internal/health/` (pacote de plataforma); `main.go` ajustado.
+3. `b378bc6` — `internal/handler/film*` + `internal/service/*` → `internal/catalogo/` (`handler.go`/`handler_test.go`/`service.go`/`service_test.go`, package `catalogo`).
+4. `973a046` — `queries.sql` → `internal/catalogo/queries.sql`; `sqlc.yaml` regenerado em `internal/catalogo/db/`; `internal/db` antigo removido.
+5. `2abc310` — imports de `internal/integration_test.go` e `internal/integration_cache_test.go` ajustados (**zero assert alterado** — diff confirmado só em linhas de import/`NewFilmService`).
+6. `d1cc7c6` — Makefile/Dockerfile apontam para `./cmd/morfeu`.
+7. `9f62ba4` — `FilmService` passa a depender de `db.Queries` (gerado) em vez do `pgxpool.Pool` cru (pré-requisito do depguard de fronteira — wiring puro, zero mudança de comportamento).
+8. `44ec0e2` + `80284cc` — `.golangci.yml` migrado para config v2 (v1 nunca validou — golangci-lint 2.x rejeitava o arquivo) com regra `catalogo-domain` (list-mode `strict`): cobre as duas fronteiras do ADR 0003 (módulo↛módulo e domínio↛driver de infra) num único allowlist; testes (`_test.go`) excluídos (ADR 0006 exige testcontainers reais no teste). Testado com violação proposital (import de `pgx` e de `internal/health` em `handler.go`) — bloqueado nos dois casos, revertido antes do commit.
+9. `d687f32` — novo teste `TestListFilmsHTTP_Integration` em `internal/catalogo/handler_test.go` (padrão `health_test.go`: testcontainers PG+Redis reais, `echo.Context` real via `httptest`, chama `handler.ListFilms` — não o service): 200, `Content-Type: application/json`, corpo decodifica em `[]FilmResponse`. Comentário enganoso removido.
+
+**Desvios do PRD** (documentados nos commits, exigidos pelos próprios critérios de aceite — nenhum é feature nova nem mudança de comportamento observável):
+- `sqlc.yaml` estava em formato `version: "1"` inválido para a estrutura usada — nunca rodou de verdade (código gerado anterior era escrito à mão). Corrigido para `version: "2"` (`sql: []`) + campos `emit_*` atuais.
+- `.golangci.yml` idem — v1 não roda no golangci-lint 2.12.2 (container padrão). Migrado para v2.
+- Dockerfile tinha `golang:1.21-alpine`, incompatível com `go.mod go 1.25.0` (`docker build` falhava antes desta task) — corrigido para `golang:1.25-alpine`, necessário para CA06.
+- `FilmService.NewFilmService` mudou de assinatura (`*pgxpool.Pool` → `*db.Queries`) — necessário para o depguard não banir a própria construção do serviço; chamadas em `main.go` e nos testes de integração ajustadas (`db.New(pool)`), sem alterar nenhum assert.
+
+Nenhum destes é overengineering nem feature nova — todos são pré-condições descobertas durante a implementação para que os próprios critérios de aceite do PRD (CA03, CA04, CA06) fossem alcançáveis (o padrão já visto no fix emergencial de `fix/e0a-build-quebrado`: configs e Dockerfile nunca tinham sido executados de verdade).
+
+**Evidência de verificação:** `go build ./...`, `go vet ./...` limpos; suíte completa (`go test -race -tags=integration ./...`) verde via container `golang:1.25` (unit + integração com testcontainers reais); `sqlc generate` sem diff (RNF03/CA04); `golangci-lint run --enable-only=depguard` limpo + violação proposital bloqueada (CA03); `docker build` funcional com `cmd/morfeu` (CA06).
+
+**Pendências:** auditoria pré-push (skill `auditoria`); PR.
 
 Contexto anterior: **task 0001 (E0a) concluída e mergeada** (merge `6916ab6`); **fix emergencial do build mergeado** (PR #3, `fa2a136`, 2026-07-10 — auditoria APROVADA abaixo). **Épico E0 refinado (2026-07-09)** — cerimônia por épico (roles.md §6.14) registrada em [`docs/refinamentos/E0-walking-skeleton.md`](docs/refinamentos/E0-walking-skeleton.md): 5 pareceres, 5 divergências resolvidas e **2 perguntas escaladas ao usuário**.
 
@@ -18,14 +42,14 @@ Contexto anterior: **task 0001 (E0a) concluída e mergeada** (merge `6916ab6`); 
 
 Ao preparar a task de conformidade, descobriu-se que **a E0a mergeada nunca compilou**: `go.sum` ausente do repo, erros de compilação em produção (`models.go`, `main.go`) e em TODOS os arquivos de teste, testcontainers 0.31.0 incompatível com o grafo de deps, cache gravado **sem TTL** (violando CA05 do PRD 0001) e testes de handler com mock camada a camada (vedado pelo ADR 0006) quebrados por NPE. Nada disso foi detectado porque não havia toolchain Go no ambiente e o CI é placeholder — evidência concreta da prioridade do E0c-CI. Corrigido: suíte completa verde com `-race` (unit + integração com testcontainers reais). Toolchain Go 1.24.5 instalado user-level em `~/.local/go`; `-race` roda via container `golang:1.25` (sem gcc no WSL); lib.md atualizado (Go 1.25 implementada; testcontainers v0.43.0).
 
-### Plano da task 0003 (status: não iniciada — aguarda PRD)
+### Plano da task 0003 (status: implementação concluída, ver seção acima)
 
-1. PRD 0003 (`criar-prd`) consumindo `docs/refinamentos/E0-walking-skeleton.md` §"Task de conformidade" — listar explicitamente todos os arquivos movidos/renomeados (exigência do refinamento).
-2. Movimentação package-by-domain em blocos verificáveis (`go build ./...` + suíte a cada bloco): catálogo → `internal/catalogo/`; `cmd/app` → `cmd/morfeu`; plataforma explícita.
-3. `sqlc.yaml` (paths por módulo) + regeneração sem diff manual; Makefile.
-4. `depguard` no `.golangci.yml` (módulo↛módulo; domínio↛driver de infra); rodar via container (sem golangci-lint local — enforcement definitivo no E0c-CI).
-5. Teste de integração HTTP real de `GET /filmes` (padrão `health_test.go`; RF03/CA04: 200 + `Content-Type: application/json`) + correção do comentário enganoso em `film_test.go` (exigência da auditoria de 2026-07-10).
-6. Gate: critério central = suíte da E0a sem alteração de asserts; auditoria pré-push; PR.
+1. ~~PRD 0003 (`criar-prd`)~~ — feito, `docs/prd/0003-conformidade-package-by-domain.md`.
+2. ~~Movimentação package-by-domain em blocos verificáveis~~ — feito (commits 1–4 acima).
+3. ~~`sqlc.yaml` (paths por módulo) + regeneração sem diff manual; Makefile~~ — feito (commits 4, 6).
+4. ~~`depguard` no `.golangci.yml`~~ — feito (commits 8).
+5. ~~Teste de integração HTTP real de `GET /filmes`~~ — feito (commit 9).
+6. Gate: critério central = suíte da E0a sem alteração de asserts (confirmado); **auditoria pré-push pendente**; PR pendente.
 
 ## Auditorias
 

@@ -1,9 +1,9 @@
 # Task 0003 — Conformidade package-by-domain (pré-E0b)
 
 - **Data:** 2026-07-10
-- **Status:** em andamento
+- **Status:** implementada — aguardando auditoria
 - **Branch:** `refactor/0003-conformidade-package-by-domain`
-- **PRD:** docs/prd/0003-conformidade-package-by-domain.md — criar antes de implementar
+- **PRD:** [docs/prd/0003-conformidade-package-by-domain.md](../prd/0003-conformidade-package-by-domain.md)
 - **Item do roadmap:** E0 (walking skeleton) — correção de drift da E0a contra o ADR 0003; exigências em `docs/refinamentos/E0-walking-skeleton.md` §"Task de conformidade"
 
 > Numeração: **0002 permanece reservada para a E0b** (outbox + RabbitMQ), já referenciada com esse número no refinamento do E0, em `state.md` e `plan.md`. Esta task recebe 0003 para preservar a rastreabilidade dos registros existentes.
@@ -37,11 +37,14 @@ Nenhuma dependência nova (`lib.md` inalterado). `depguard` é linter do golangc
 
 ## Critérios de aceite
 
-- [ ] **Suíte da E0a passa sem alteração de asserts** (critério único do refinamento) — unit + integração com testcontainers reais + `-race`.
-- [ ] Layout conforme ADR 0003: `internal/catalogo/` + plataforma explícita + `cmd/morfeu`.
-- [ ] `depguard` ativo e verde (módulo↛módulo; domínio↛driver de infra).
-- [ ] `sqlc generate` reproduz o código gerado nos paths novos sem diff manual.
-- [ ] Novo teste de integração HTTP real de `GET /filmes` verde (status 200 + `Content-Type: application/json`); comentário enganoso removido.
+- [x] **Suíte da E0a passa sem alteração de asserts** (critério único do refinamento) — unit + integração com testcontainers reais + `-race` (verificado via container `golang:1.25`).
+- [x] Layout conforme ADR 0003: `internal/catalogo/` + plataforma explícita (`internal/health`) + `cmd/morfeu`.
+- [x] `depguard` ativo e verde (módulo↛módulo; domínio↛driver de infra) — `.golangci.yml` migrado para config v2 (v1 nunca rodou de verdade); testado com violação proposital (bloqueada e revertida).
+- [x] `sqlc generate` reproduz o código gerado nos paths novos sem diff manual.
+- [x] Novo teste de integração HTTP real de `GET /filmes` verde (status 200 + `Content-Type: application/json`); comentário enganoso removido.
+- [x] `docker build` funcional com `cmd/morfeu` (Dockerfile também corrigido: base `golang:1.21-alpine` incompatível com `go.mod go 1.25.0`, pré-existente).
+
+Desvios do escopo original registrados no PRD/plan.md: `sqlc.yaml` estava em formato v1 inválido (nunca rodou), corrigido para v2; `.golangci.yml` idem; `FilmService` passou a depender de `db.Queries` (gerado) em vez do `pgxpool.Pool` cru — pré-requisito da regra depguard de fronteira, sem mudança de comportamento; Dockerfile com base Go desatualizada corrigida. Nenhum assert de teste pré-existente alterado.
 
 ## Riscos
 
