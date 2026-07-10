@@ -1,5 +1,5 @@
 # Builder stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o app ./cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o app ./cmd/morfeu
 
 # Runtime stage
 FROM scratch

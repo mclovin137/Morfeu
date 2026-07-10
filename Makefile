@@ -30,7 +30,7 @@ test:
 	go test -race -cover ./...
 
 build:
-	CGO_ENABLED=0 go build -o app ./cmd/app
+	CGO_ENABLED=0 go build -o app ./cmd/morfeu
 
 run: build
 	./app
