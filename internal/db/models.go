@@ -6,7 +6,6 @@ package db
 
 import (
 	"database/sql/driver"
-	"fmt"
 	"time"
 )
 

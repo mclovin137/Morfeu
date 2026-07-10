@@ -51,13 +51,19 @@ func TestRedisCache_SetGetTimeout(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	// Create a mock client
+	// Exercise the mock through the same interface the cache expects;
+	// real Redis behavior is covered by the integration tests (testcontainers)
 	mockClient := &MockRedisClient{
 		data: make(map[string][]byte),
 	}
+	if err := mockClient.Set(context.Background(), "k", []byte("v"), time.Minute); err != nil {
+		t.Fatalf("Set failed: %v", err)
+	}
+	got, err := mockClient.Get(context.Background(), "k")
+	if err != nil || string(got) != "v" {
+		t.Errorf("Get = %q, err %v; want %q", got, err, "v")
+	}
 
-	// Since we can't easily mock redis.Client, we'll just test the interface
-	// The real tests will use testcontainers in integration tests
 	if logger == nil {
 		t.Error("Logger should not be nil")
 	}
