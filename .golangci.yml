@@ -65,9 +65,12 @@ linters:
         # (2) domínio não importa driver de infra direto — pgx e go-redis só no
         #     internal/catalogo/db gerado (fora deste glob) e em internal/cache
         #     (plataforma, importado via interface cache.Cache).
+        # Testes (_test.go) ficam fora: ADR 0006 exige testcontainers reais (PG/Redis)
+        # no nível do handler, o que exige montar a infra real no teste.
         catalogo-domain:
           files:
             - "**/internal/catalogo/*.go"
+            - "!$test"
           list-mode: strict
           allow:
             - $gostd
