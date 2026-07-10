@@ -4,6 +4,6 @@ Registro das cerimônias de refinamento multiagente (roles.md §6.14): **uma por
 
 | Épico | Arquivo | Data | Status |
 |---|---|---|---|
-| — | — | — | — |
+| E0 — Walking skeleton | [`E0-walking-skeleton.md`](E0-walking-skeleton.md) | 2026-07-09 | concluído — 2 perguntas escaladas ao usuário (reordenação do épico; autorização do ADR de mensageria) |
 
-> Nota de transição: as tasks 0001 (E0a) e 0002 (E0b) foram refinadas no modelo antigo (por task, seção "Refinamento" no doc da task) — seguem válidas. O modelo por épico vale a partir do próximo refinamento.
+> Nota de transição: a task 0001 (E0a) foi refinada e entregue no modelo antigo (por task). O refinamento por épico do E0 (acima) **substitui** o refinamento antigo da task 0002 (E0b): reescopou o rascunho (corte de `FilmUpdated`, fronteiras plataforma×domínio, publisher confirms) — o PRD da 0002 DEVE consumir as exigências do refinamento do épico.

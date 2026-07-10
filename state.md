@@ -6,11 +6,11 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 **Descoberta concluída (2026-07-06).** Morfeu definido: **venda de ingressos de cinema online** (portfólio/aprendizado, dev solo, 10–12h/sem, horizonte 7–9 meses). Stack: Go + Echo, sqlc + pgx/v5, PostgreSQL (fonte da verdade, inclusive trava de assento), Redis (cache), RabbitMQ (saga do checkout), React + Vite, VM Oracle Always Free (PAYG), observabilidade self-hosted, k6. Artefatos gerados: `doc.md` (mini-UML), `lib.md` (stack `planejada`, validada Context7/OSV), `docs/roadmap.md` (E0–E12, marcos M1–M5).
 
-- **Última task concluída:** nenhuma (descoberta não é task)
-- **Task atual:** 0001 (App Skeleton Go — E0a) — status: refinada ✓, PRD ✓ → próximo: **implementação**
-- **Branch atual:** `feature/0001-app-skeleton-go`
-- **PRD atual:** `docs/prd/0001-app-skeleton-go.md` (ativo, pronto para dev) — 2026-07-08
-- **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — todos aceitos em 2026-07-07 com autorização explícita. Candidatas restantes (trava de assento, RabbitMQ, saga) nascem nos refinamentos E4/E6.
+- **Última task concluída:** 0001 (App Skeleton Go — E0a) — implementada, auditada e **mergeada na main** (merge `6916ab6`, 2026-07-08)
+- **Épico E0 refinado (2026-07-09):** cerimônia por épico (§6.14) em `docs/refinamentos/E0-walking-skeleton.md` — 5 pareceres "seguir com ressalvas"; task 0002 reescopada (corte de `FilmUpdated`, fronteiras plataforma×domínio, publisher confirms, CLI admin); proposta de dividir E0c em **E0c-CI** e **E0c-CD**; **2 perguntas escaladas ao usuário** (aval da reordenação do épico; autorização do ADR de mensageria RabbitMQ) — bloqueiam os PRDs de E0b/E0c/E0d até resposta.
+- **Task atual (em preparação):** task de conformidade pré-E0b — realinhamento package-by-domain (drift da E0a vs. ADR 0003); não bloqueada pelas perguntas escaladas.
+- **PRD atual:** nenhum ativo (PRD da 0002 aguarda respostas do refinamento E0)
+- **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — todos aceitos em 2026-07-07 com autorização explícita. Candidata **"Mensageria: RabbitMQ" proposta no refinamento do E0 (aguarda autorização)**; restantes (trava de assento, saga) nascem nos refinamentos E4/E6.
 
 ## Últimas decisões relevantes
 
@@ -40,14 +40,18 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Próximos passos
 
-1. Item 0 do roadmap — pré-bootstrap de ambiente (WSL ext4, Oracle, GitHub público).
-2. `/criar-task` sobre a fatia (a) do E0 (walking skeleton) → `/refinar-task` → `/criar-prd` → implementação.
-3. No refinamento do E0: propor criação dos ADRs candidatos 1–2 (stack Go+Echo; sqlc+pgx) com autorização do usuário.
+1. **Usuário responder as 2 perguntas do refinamento E0** (`docs/refinamentos/E0-walking-skeleton.md` — Conclusão): (a) aval para dividir E0c em CI/CD e reordenar o épico (conformidade → E0c-CI → E0b → E0c-CD → E0d); (b) autorização do ADR "Mensageria: RabbitMQ". Bloqueiam os PRDs de E0b/E0c/E0d.
+2. **Item 0 do roadmap** (ação do usuário, iniciar já — capacidade A1 é loteria): conta Oracle PAYG + VM A1; mover repo p/ WSL ext4.
+3. Task de conformidade pré-E0b (não bloqueada): `/criar-task` → PRD → implementação (realinhamento package-by-domain, ADR 0003).
+4. Após respostas: PRD da 0002 (E0b) consumindo as exigências do refinamento (+ ADR de mensageria, se autorizado) → implementação.
+5. Mergear a branch `chore/playbook-backend-distribuido` (pushada, aguarda PR/merge) e esta (`chore/refinamento-epico-e0`).
 
 ## Histórico resumido
 
 | Data | Evento |
 |------|--------|
+| 2026-07-09 | **Épico E0 refinado** (primeira cerimônia por épico, §6.14): 5 pareceres, task 0002 reescopada, divisão E0c-CI/E0c-CD proposta, ADR de mensageria proposto; 2 perguntas escaladas ao usuário. |
+| 2026-07-08 | **Task 0001 (E0a) concluída e mergeada**: app skeleton Go (compose PG/Redis, migrations, GET /filmes com cache read-through), 14 commits, auditoria + correção de 9 bloqueadores. |
 | 2026-07-08 | **Governança de economia de tokens**: refinamento por épico, gate híbrido de auditoria (CI + passe único de julgamento), PRD just-in-time, vault sem duplicação; arquiteto ampliado; descoberta com design/trade-offs/prioridades/skills/ADRs iniciais. |
 | 2026-07-07 | **Identidade visual "A Sala Escura" aprovada e registrada** em `docs/design/` (paleta, tipografia, movimento, voz + protótipo navegável de login/cadastro e home). |
 | 2026-07-07 | **ADRs 0001–0006 criados** (stack, dados, camadas, código, DDD/patterns, testes) após confronto multiagente da proposta de padrões do usuário. |
