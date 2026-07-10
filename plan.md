@@ -14,6 +14,10 @@
 2. **Autorização para criar o ADR "Mensageria: RabbitMQ"** (roles.md §6.1) — o refinamento recomenda que exista antes/junto do PRD da task 0002 (E0b). Bloqueia o PRD da 0002.
 3. (Ação do usuário, não bloqueia PRDs) **Item 0**: iniciar criação da conta Oracle PAYG + VM A1 — única dependência externa do M1.
 
+### Fix emergencial (2026-07-10, branch `fix/e0a-build-quebrado`, commit `ab70d13`)
+
+Ao preparar a task de conformidade, descobriu-se que **a E0a mergeada nunca compilou**: `go.sum` ausente do repo, erros de compilação em produção (`models.go`, `main.go`) e em TODOS os arquivos de teste, testcontainers 0.31.0 incompatível com o grafo de deps, cache gravado **sem TTL** (violando CA05 do PRD 0001) e testes de handler com mock camada a camada (vedado pelo ADR 0006) quebrados por NPE. Nada disso foi detectado porque não havia toolchain Go no ambiente e o CI é placeholder — evidência concreta da prioridade do E0c-CI. Corrigido: suíte completa verde com `-race` (unit + integração com testcontainers reais). Toolchain Go 1.24.5 instalado user-level em `~/.local/go`; `-race` roda via container `golang:1.25` (sem gcc no WSL); lib.md atualizado (Go 1.25 implementada; testcontainers v0.43.0).
+
 ### Próxima task em preparação
 
 **Task de conformidade (pré-E0b)** — realinhamento package-by-domain (ADR 0003): mover catálogo para `internal/catalogo/`, `cmd/app` → `cmd/morfeu`, plataforma explícita, `depguard` ativo. **Não bloqueada** pelas perguntas acima (corrige drift contra ADR já aceito; coberta pelo refinamento do E0 — dispensa nova cerimônia). Critério de aceite único: suíte da E0a passa sem alteração de asserts.

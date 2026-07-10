@@ -6,7 +6,7 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 **Descoberta concluída (2026-07-06).** Morfeu definido: **venda de ingressos de cinema online** (portfólio/aprendizado, dev solo, 10–12h/sem, horizonte 7–9 meses). Stack: Go + Echo, sqlc + pgx/v5, PostgreSQL (fonte da verdade, inclusive trava de assento), Redis (cache), RabbitMQ (saga do checkout), React + Vite, VM Oracle Always Free (PAYG), observabilidade self-hosted, k6. Artefatos gerados: `doc.md` (mini-UML), `lib.md` (stack `planejada`, validada Context7/OSV), `docs/roadmap.md` (E0–E12, marcos M1–M5).
 
-- **Última task concluída:** 0001 (App Skeleton Go — E0a) — implementada, auditada e **mergeada na main** (merge `6916ab6`, 2026-07-08)
+- **Última task concluída:** 0001 (App Skeleton Go — E0a) — implementada, auditada e **mergeada na main** (merge `6916ab6`, 2026-07-08). **Fix emergencial 2026-07-10** (`fix/e0a-build-quebrado`, `ab70d13`): a E0a mergeada **nunca tinha compilado** (go.sum ausente, erros de compilação em produção e testes, cache sem TTL vs. CA05, mocks vedados pelo ADR 0006) — corrigido, suíte verde com `-race`; expôs na prática a urgência do E0c-CI.
 - **Épico E0 refinado (2026-07-09):** cerimônia por épico (§6.14) em `docs/refinamentos/E0-walking-skeleton.md` — 5 pareceres "seguir com ressalvas"; task 0002 reescopada (corte de `FilmUpdated`, fronteiras plataforma×domínio, publisher confirms, CLI admin); proposta de dividir E0c em **E0c-CI** e **E0c-CD**; **2 perguntas escaladas ao usuário** (aval da reordenação do épico; autorização do ADR de mensageria RabbitMQ) — bloqueiam os PRDs de E0b/E0c/E0d até resposta.
 - **Task atual (em preparação):** task de conformidade pré-E0b — realinhamento package-by-domain (drift da E0a vs. ADR 0003); não bloqueada pelas perguntas escaladas.
 - **PRD atual:** nenhum ativo (PRD da 0002 aguarda respostas do refinamento E0)
@@ -24,6 +24,8 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 - 2026-07-04 — Projeto criado a partir do template Tllm (governança multiagente completa herdada).
 
 ## Pendências técnicas
+
+- **Ambiente de build local (registro 2026-07-10):** Go 1.24.5 instalado user-level em `~/.local/go/bin` (fora do PATH padrão — exportar no shell); **sem gcc no WSL** → `go test -race` roda via container `golang:1.25` com socket Docker montado (`TESTCONTAINERS_HOST_OVERRIDE` = IP do host). Instalar gcc (apt) e adicionar Go ao PATH ficam a critério do usuário.
 
 - **Hardening do hook `obsidian-session-end.sh`** (achado da auditoria de 2026-07-07, severidade média, não bloqueante): trocar `--dangerously-skip-permissions` por allowlist escopada (`--allowedTools "Read Write Edit Glob Grep"`) e mover o log de `/tmp` para diretório do usuário; junto, hardening da config `.claude/` (permissions block no settings.json) — candidata a task junto com o enforcement do gate §6.4.5.
 - **Item 0 do roadmap (pré-bootstrap):** mover repo p/ WSL ext4; criar conta Oracle PAYG + VM A1 (semana 1 — capacidade é loteria); remover `pom.xml` placeholder na task de bootstrap. ~~Criar repo GitHub público e primeiro push~~ → feito em 2026-07-07 (auditoria aprovada; secret scanning + push protection habilitados na criação).
