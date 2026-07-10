@@ -1,15 +1,14 @@
-package service
+package catalogo
 
 import (
 	"context"
 	"encoding/json"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 
 	"github.com/mclovin137/morfeu/internal/cache"
-	"github.com/mclovin137/morfeu/internal/db"
+	"github.com/mclovin137/morfeu/internal/catalogo/db"
 )
 
 // filmsCacheTTL: PRD 0001 (CA05) — cache read-through com TTL de 5 minutos
@@ -17,17 +16,18 @@ const filmsCacheTTL = 5 * time.Minute
 
 // FilmService handles film-related business logic
 type FilmService struct {
-	db    *pgxpool.Pool
-	cache cache.Cache
-	logger *zap.Logger
+	queries *db.Queries
+	cache   cache.Cache
+	logger  *zap.Logger
 }
 
-// NewFilmService creates a new film service
-func NewFilmService(db *pgxpool.Pool, cache cache.Cache, logger *zap.Logger) *FilmService {
+// NewFilmService creates a new film service. queries é o DAO gerado pelo sqlc
+// (internal/catalogo/db) — o domínio depende dele, não do pool pgx cru (ADR 0003).
+func NewFilmService(queries *db.Queries, cache cache.Cache, logger *zap.Logger) *FilmService {
 	return &FilmService{
-		db:    db,
-		cache: cache,
-		logger: logger,
+		queries: queries,
+		cache:   cache,
+		logger:  logger,
 	}
 }
 
@@ -64,8 +64,7 @@ func (fs *FilmService) ListFilms(ctx context.Context) ([]db.Film, error) {
 		zap.String("action", "database_query"),
 	)
 
-	queries := db.New(fs.db)
-	films, err := queries.ListFilms(ctx)
+	films, err := fs.queries.ListFilms(ctx)
 	if err != nil {
 		fs.logger.Error("failed to fetch films from database",
 			zap.Error(err),

@@ -1,4 +1,4 @@
-package handler
+package catalogo
 
 import (
 	"context"
@@ -6,16 +6,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/mclovin137/morfeu/internal/service"
 )
 
 // FilmHandler handles film-related HTTP requests
 type FilmHandler struct {
-	service *service.FilmService
+	service *FilmService
 }
 
 // NewFilmHandler creates a new film handler
-func NewFilmHandler(service *service.FilmService) *FilmHandler {
+func NewFilmHandler(service *FilmService) *FilmHandler {
 	return &FilmHandler{
 		service: service,
 	}

@@ -19,10 +19,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/mclovin137/morfeu/internal/cache"
+	"github.com/mclovin137/morfeu/internal/catalogo"
+	catalogodb "github.com/mclovin137/morfeu/internal/catalogo/db"
 	"github.com/mclovin137/morfeu/internal/config"
-	"github.com/mclovin137/morfeu/internal/handler"
+	"github.com/mclovin137/morfeu/internal/health"
 	"github.com/mclovin137/morfeu/internal/logger"
-	"github.com/mclovin137/morfeu/internal/service"
 )
 
 func main() {
@@ -78,11 +79,11 @@ func main() {
 	cacheLayer := cache.NewRedisCache(redisClient, log.Logger)
 
 	// Create service layer
-	filmService := service.NewFilmService(dbPool, cacheLayer, log.Logger)
+	filmService := catalogo.NewFilmService(catalogodb.New(dbPool), cacheLayer, log.Logger)
 
 	// Create handlers
-	filmHandler := handler.NewFilmHandler(filmService)
-	healthHandler := handler.NewHealthHandler(dbPool, redisClient)
+	filmHandler := catalogo.NewFilmHandler(filmService)
+	healthHandler := health.NewHealthHandler(dbPool, redisClient)
 
 	// Create Echo instance
 	e := echo.New()
