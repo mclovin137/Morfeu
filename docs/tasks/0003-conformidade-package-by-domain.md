@@ -1,7 +1,7 @@
 # Task 0003 — Conformidade package-by-domain (pré-E0b)
 
 - **Data:** 2026-07-10
-- **Status:** implementada — aguardando auditoria
+- **Status:** concluída — auditoria APROVADA (2026-07-10) e mergeada na main (PR #4, merge `a391cdb`)
 - **Branch:** `refactor/0003-conformidade-package-by-domain`
 - **PRD:** [docs/prd/0003-conformidade-package-by-domain.md](../prd/0003-conformidade-package-by-domain.md)
 - **Item do roadmap:** E0 (walking skeleton) — correção de drift da E0a contra o ADR 0003; exigências em `docs/refinamentos/E0-walking-skeleton.md` §"Task de conformidade"

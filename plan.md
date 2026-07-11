@@ -2,9 +2,13 @@
 
 > Este arquivo é o plano vivo da task corrente **do projeto** — não confundir com o *plan mode* do Claude Code (que grava em `~/.claude/plans/`). Atualizado durante a implementação; reflete o estado real (regras em `roles.md` §6.11).
 
-## Estado corrente (2026-07-10)
+## Estado corrente (2026-07-11)
 
-**Task 0003 — Conformidade package-by-domain (pré-E0b): IMPLEMENTADA, aguardando auditoria** (branch `refactor/0003-conformidade-package-by-domain`; task `docs/tasks/0003-conformidade-package-by-domain.md`; **PRD `docs/prd/0003-conformidade-package-by-domain.md`**, criado 2026-07-10 consumindo o refinamento do E0). Objetivo: realinhar a E0a ao layout do ADR 0003 (catálogo → `internal/catalogo/`, health → `internal/health/`, `cmd/app` → `cmd/morfeu`, `depguard`, `sqlc.yaml`/Makefile/Dockerfile) + teste HTTP real de `GET /filmes` (exigência da auditoria de 2026-07-10). Critério central: suíte da E0a passa sem alteração de asserts — **confirmado** (ver diffs dos commits de movimentação: só imports/paths mudaram).
+**Nenhuma task de implementação em andamento.** Task 0003 **CONCLUÍDA e mergeada na main** (PR #4, merge `a391cdb`, 2026-07-11 — auditoria APROVADA, ver seção Auditorias). Em curso: **registro das respostas do refinamento E0** (branch `chore/respostas-refinamento-e0`, 2026-07-11) — usuário **aprovou a reordenação do épico** (E0c → E0c-CI + E0c-CD; ordem conformidade ✅ → E0c-CI → E0b → E0c-CD → E0d; roadmap atualizado) e **autorizou o ADR 0007 "Mensageria: RabbitMQ"** (criado via `criar-adr` com parecer do `arquiteto`; índice e state.md atualizados). **Próxima task: E0c-CI** (`criar-task` → PRD consumindo o refinamento §"Task E0c-CI" → implementação).
+
+### Task 0003 — Conformidade package-by-domain (pré-E0b): CONCLUÍDA (histórico)
+
+Branch `refactor/0003-conformidade-package-by-domain` (removida pós-merge); task `docs/tasks/0003-conformidade-package-by-domain.md`; PRD `docs/prd/0003-conformidade-package-by-domain.md`. Objetivo: realinhar a E0a ao layout do ADR 0003 (catálogo → `internal/catalogo/`, health → `internal/health/`, `cmd/app` → `cmd/morfeu`, `depguard`, `sqlc.yaml`/Makefile/Dockerfile) + teste HTTP real de `GET /filmes` (exigência da auditoria de 2026-07-10). Critério central: suíte da E0a passa sem alteração de asserts — **confirmado** (ver diffs dos commits de movimentação: só imports/paths mudaram).
 
 ### Implementação concluída (2026-07-10) — 14 commits no branch (2 planejamento + 10 implementação + 2 docs), 26 arquivos no diff
 
@@ -28,15 +32,15 @@ Nenhum destes é overengineering nem feature nova — todos são pré-condiçõe
 
 **Evidência de verificação:** `go build ./...`, `go vet ./...` limpos; suíte completa (`go test -race -tags=integration ./...`) verde via container `golang:1.25` (unit + integração com testcontainers reais); `sqlc generate` sem diff (RNF03/CA04); `golangci-lint run --enable-only=depguard` limpo + violação proposital bloqueada (CA03); `docker build` funcional com `cmd/morfeu` (CA06).
 
-**Pendências:** PR (auditoria pré-push **APROVADA em 2026-07-10** — ver seção Auditorias).
+**Pendências:** ~~PR~~ → **PR #4 aberto, CI verde e mergeado em 2026-07-11** (merge `a391cdb`; branches local/remota removidas).
 
 Contexto anterior: **task 0001 (E0a) concluída e mergeada** (merge `6916ab6`); **fix emergencial do build mergeado** (PR #3, `fa2a136`, 2026-07-10 — auditoria APROVADA abaixo). **Épico E0 refinado (2026-07-09)** — cerimônia por épico (roles.md §6.14) registrada em [`docs/refinamentos/E0-walking-skeleton.md`](docs/refinamentos/E0-walking-skeleton.md): 5 pareceres, 5 divergências resolvidas e **2 perguntas escaladas ao usuário**.
 
-### Perguntas escaladas ao usuário (bloqueiam os PRDs afetados — §6.14.7)
+### Perguntas escaladas ao usuário (§6.14.7) — RESPONDIDAS em 2026-07-11
 
-1. **Aval para reordenar o épico**: dividir E0c em **E0c-CI** (pipeline de gates + build ARM64, sem dependência externa — peça do gate híbrido §6.4) e **E0c-CD** (deploy + Caddy/TLS + smoke, bloqueada pela VM Oracle), com sequência **conformidade → E0c-CI → E0b → E0c-CD → E0d**. Bloqueia os PRDs de E0b/E0c/E0d na nova ordem.
-2. **Autorização para criar o ADR "Mensageria: RabbitMQ"** (roles.md §6.1) — o refinamento recomenda que exista antes/junto do PRD da task 0002 (E0b). Bloqueia o PRD da 0002.
-3. (Ação do usuário, não bloqueia PRDs) **Item 0**: iniciar criação da conta Oracle PAYG + VM A1 — única dependência externa do M1.
+1. **Aval para reordenar o épico** (E0c → E0c-CI + E0c-CD, sequência conformidade → E0c-CI → E0b → E0c-CD → E0d) → **✅ APROVADO**; roadmap e refinamento atualizados.
+2. **Autorização para criar o ADR "Mensageria: RabbitMQ"** → **✅ AUTORIZADO**; ADR 0007 criado (`docs/adr/0007-mensageria-rabbitmq.md`), desbloqueando o PRD da 0002 (E0b).
+3. (Ação do usuário, não bloqueia PRDs) **Item 0**: iniciar criação da conta Oracle PAYG + VM A1 — única dependência externa do M1. **Segue em aberto.**
 
 ### Fix emergencial (2026-07-10, branch `fix/e0a-build-quebrado`, commit `ab70d13`)
 
@@ -49,7 +53,7 @@ Ao preparar a task de conformidade, descobriu-se que **a E0a mergeada nunca comp
 3. ~~`sqlc.yaml` (paths por módulo) + regeneração sem diff manual; Makefile~~ — feito (commits 4, 6).
 4. ~~`depguard` no `.golangci.yml`~~ — feito (commits 8).
 5. ~~Teste de integração HTTP real de `GET /filmes`~~ — feito (commit 9).
-6. Gate: critério central = suíte da E0a sem alteração de asserts (confirmado); **auditoria pré-push pendente**; PR pendente.
+6. ~~Gate~~ — feito: critério central confirmado (asserts intactos); auditoria APROVADA (2026-07-10); PR #4 mergeado (`a391cdb`, 2026-07-11).
 
 ## Auditorias
 
