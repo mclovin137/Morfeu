@@ -14,3 +14,4 @@ Convenção: `NNNN-titulo-kebab.md`, numeração sequencial a partir de `0001`. 
 | [0004](0004-padroes-de-codigo-go.md) | Padrões de código Go (calisthenics adaptado, erros, TX, naming) | aceito | 2026-07-07 |
 | [0005](0005-ddd-tatico-e-padroes-de-projeto.md) | DDD tático e padrões de projeto nos módulos críticos | aceito | 2026-07-07 |
 | [0006](0006-estrategia-de-testes.md) | Estratégia de testes | aceito | 2026-07-07 |
+| [0007](0007-mensageria-rabbitmq.md) | Mensageria: RabbitMQ (topologia, outbox + confirms + dedup, limites na A1) | aceito | 2026-07-11 |
