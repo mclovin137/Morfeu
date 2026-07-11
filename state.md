@@ -8,8 +8,8 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 - **Última task concluída:** **0003 — Conformidade package-by-domain** (pré-E0b) — implementada, auditoria APROVADA (2026-07-10, relatório no `plan.md`) e **mergeada na main** (PR #4, merge `a391cdb`, 2026-07-10). Realinhamento completo ao ADR 0003 (`internal/catalogo/`, `internal/health/`, `cmd/morfeu`, `depguard` v2 com fronteiras módulo↛módulo e domínio↛driver de infra, `sqlc.yaml`/Makefile/Dockerfile corrigidos) + teste HTTP real de `GET /filmes`. Antes dela: 0001 (E0a, merge `6916ab6`) + fix emergencial do build (PR #3, `fa2a136` — a E0a mergeada nunca tinha compilado; expôs a urgência do E0c-CI).
 - **Épico E0 refinado (2026-07-09) e perguntas respondidas (2026-07-11):** cerimônia por épico (§6.14) em `docs/refinamentos/E0-walking-skeleton.md` — task 0002 reescopada; **usuário aprovou a reordenação** (E0c dividido em E0c-CI/E0c-CD; ordem: conformidade ✅ → **E0c-CI** → E0b → E0c-CD → E0d; roadmap atualizado) e **autorizou o ADR 0007 de mensageria** (criado). PRDs de E0b/E0c/E0d desbloqueados na nova ordem.
-- **Task atual:** nenhuma em andamento. **Próxima: E0c-CI** (pipeline de CI + build ARM64 + shell SPA — peça do gate híbrido §6.4; exigências já definidas no refinamento E0).
-- **PRD atual:** nenhum ativo. (Próximo: PRD da task E0c-CI; PRD da 0002/E0b na sequência, consumindo o refinamento + ADR 0007.)
+- **Task atual:** **0004 — Pipeline de CI + build ARM64 (E0c-CI)** (`docs/tasks/0004-pipeline-ci-arm64.md`, branch `chore/0004-pipeline-ci-arm64`, criada 2026-07-11): pipeline real de gates substitui o CI placeholder (peça mecânica do gate híbrido §6.4 — encerra o modo transição da auditoria) + quitação do débito de lint da E0a. Decisão de abertura: **shell SPA fica fora** (task própria; limite de 30 arquivos após absorver o débito de lint) — desvio consciente da recomendação não-bloqueante do refinamento.
+- **PRD atual:** 0004 em criação (`criar-prd`, consumindo refinamento E0 §"Task E0c-CI"). (PRD da 0002/E0b na sequência, consumindo o refinamento + ADR 0007.)
 - **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — aceitos em 2026-07-07 — · **0007 (Mensageria: RabbitMQ)** — aceito em 2026-07-11 com autorização explícita (pergunta 2 do refinamento E0). Restantes (trava de assento, saga) nascem nos refinamentos E4/E6.
 
 ## Últimas decisões relevantes
@@ -44,7 +44,7 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Próximos passos
 
-1. **Task E0c-CI** (próxima da fila, desbloqueada): `/criar-task` → PRD (consome exigências do refinamento E0 §"Task E0c-CI": pipeline lint→vet→test -race→govulncheck→gitleaks→build ARM64→GHCR, PRs de prova de cada gate, testcontainers 90–120s, shell SPA estático) → implementação. Ao entrar, o CI assume os itens mecânicos da auditoria (gate híbrido §6.4) e absorve o débito de lint registrado nas pendências.
+1. **Task 0004 (E0c-CI) em andamento**: ~~criar-task~~ ✅ (2026-07-11) → PRD (`criar-prd`, consumindo refinamento E0 §"Task E0c-CI") → implementação (pipeline de gates + quitação do débito de lint; shell SPA fora — task própria). Ao mergear, o CI assume os itens mecânicos da auditoria (gate híbrido §6.4) e encerra o modo transição.
 2. **Item 0 do roadmap** (ação do usuário, iniciar já — capacidade A1 é loteria): conta Oracle PAYG + VM A1; mover repo p/ WSL ext4. Define o sequenciamento do E0c-CD.
 3. Depois: PRD da 0002 (E0b) consumindo as exigências do refinamento + **ADR 0007** → implementação (branch `feature/0002-outbox-rabbitmq` já existe localmente).
 4. ~~Respostas das 2 perguntas do refinamento E0~~ → **respondidas em 2026-07-11** (reordenação aprovada; ADR 0007 autorizado/criado).

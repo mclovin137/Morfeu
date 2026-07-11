@@ -4,7 +4,24 @@
 
 ## Estado corrente (2026-07-11)
 
-**Nenhuma task de implementação em andamento.** Task 0003 **CONCLUÍDA e mergeada na main** (PR #4, merge `a391cdb`, 2026-07-10 — auditoria APROVADA, ver seção Auditorias). Em curso: **registro das respostas do refinamento E0** (branch `chore/respostas-refinamento-e0`, 2026-07-11) — usuário **aprovou a reordenação do épico** (E0c → E0c-CI + E0c-CD; ordem conformidade ✅ → E0c-CI → E0b → E0c-CD → E0d; roadmap atualizado) e **autorizou o ADR 0007 "Mensageria: RabbitMQ"** (criado via `criar-adr` com parecer do `arquiteto`; índice e state.md atualizados). **Próxima task: E0c-CI** (`criar-task` → PRD consumindo o refinamento §"Task E0c-CI" → implementação).
+**Task 0004 — Pipeline de CI + build ARM64 (E0c-CI): NÃO INICIADA (PRD em criação)** (branch `chore/0004-pipeline-ci-arm64`; task `docs/tasks/0004-pipeline-ci-arm64.md`; refinamento do épico E0 já cobre esta task — direto ao PRD, §6.14).
+
+**Objetivo:** substituir o CI placeholder pelo pipeline real de gates (lint, vet, `test -race` com testcontainers, govulncheck, sqlc vet, gitleaks, migrations condicional por path, build `linux/arm64` → GHCR + smoke) em runner ARM64 nativo, com supply chain pinada (actions por SHA + Dependabot + base image por digest) — **peça mecânica do gate híbrido §6.4**; a partir do merge, a skill `auditoria` reduz ao passe único de julgamento (fim do modo transição). Inclui **quitação do débito de lint da E0a** (43 issues + `time.Sleep` nos testes — pendências técnicas do state.md), pois o gate de lint não pode nascer vermelho.
+
+**Decisão de abertura:** shell SPA fica **fora** (task própria, 0005 candidata) — o débito de lint consome a folga do limite de 30 arquivos; desvio consciente da recomendação não-bloqueante do refinamento, registrado no task doc.
+
+### Plano da task 0004 (status: não iniciada)
+
+1. PRD 0004 (`criar-prd`) consumindo refinamento E0 §"Task E0c-CI" — validar no PRD: disponibilidade/custo do runner `ubuntu-24.04-arm` p/ repo público (fonte atual), convenção p/ actions (lib.md ou PRD), lista fechada dos 43 issues de lint.
+2. Quitação do débito de lint em commits pequenos (correções mecânicas; suíte completa como rede; asserts intactos).
+3. Workflow real: gates + job de migrations condicional + build ARM64/GHCR + smoke; actions pinadas; Dependabot; Dockerfile por digest.
+4. PRs de prova descartáveis (um por gate) com evidência registrada.
+5. Governança: roles.md §6.4 sai do modo transição; skill `auditoria` no modo-alvo.
+6. Gate: auditoria pré-push (última no modo transição) → PR → merge.
+
+---
+
+**Contexto anterior (2026-07-11):** Task 0003 **CONCLUÍDA e mergeada** (PR #4, merge `a391cdb`, 2026-07-10 — auditoria APROVADA, ver seção Auditorias). **Respostas do refinamento E0 registradas e mergeadas** (PR #5, `ff06e5c`, 2026-07-11): usuário aprovou a reordenação do épico (conformidade ✅ → E0c-CI → E0b → E0c-CD → E0d; roadmap atualizado) e autorizou o **ADR 0007 "Mensageria: RabbitMQ"** (criado com parecer do `arquiteto`).
 
 ### Task 0003 — Conformidade package-by-domain (pré-E0b): CONCLUÍDA (histórico)
 
