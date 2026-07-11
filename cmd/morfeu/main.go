@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -123,7 +124,7 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		if err := e.Start(":" + cfg.AppPort); err != nil && err != http.ErrServerClosed {
+		if err := e.Start(":" + cfg.AppPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.ErrorMsg("Server error", zap.Error(err))
 		}
 	}()
@@ -206,12 +207,12 @@ func runMigrations(databaseURL string, log *logger.Logger) error {
 		}
 	}()
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	version, dirty, err := m.Version()
-	if err == migrate.ErrNilVersion {
+	if errors.Is(err, migrate.ErrNilVersion) {
 		log.Info("No migrations applied")
 		return nil
 	}

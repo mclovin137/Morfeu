@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -37,7 +38,7 @@ func (rc *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
 
 	val, err := rc.client.Get(cacheCtx, key).Bytes()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			rc.logger.Info("cache miss",
 				zap.String("action", "cache_miss"),
 				zap.String("key", key),
