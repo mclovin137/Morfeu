@@ -19,7 +19,7 @@ func TestNewFilmService(t *testing.T) {
 	// Real tests will use testcontainers
 	service := NewFilmService(nil, nil, logger)
 	if service == nil {
-		t.Error("FilmService should not be nil")
+		t.Fatal("FilmService should not be nil")
 	}
 
 	if service.logger == nil {
