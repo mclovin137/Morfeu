@@ -9,7 +9,11 @@ import (
 
 func TestNewFilmService(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			t.Logf("failed to sync logger: %v", err)
+		}
+	}()
 
 	// Test that FilmService can be instantiated with nil db/cache
 	// Real tests will use testcontainers
@@ -25,7 +29,11 @@ func TestNewFilmService(t *testing.T) {
 
 func TestFilmServiceFields(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			t.Logf("failed to sync logger: %v", err)
+		}
+	}()
 
 	service := NewFilmService(nil, nil, logger)
 

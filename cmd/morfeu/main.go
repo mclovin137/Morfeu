@@ -36,7 +36,11 @@ func main() {
 
 	// Initialize logger
 	log := logger.NewLogger(cfg.LogLevel)
-	defer log.Sync()
+	defer func() {
+		if syncErr := log.Sync(); syncErr != nil {
+			fmt.Fprintf(os.Stderr, "failed to sync logger: %v\n", syncErr)
+		}
+	}()
 
 	log.Info("Starting Morfeu application",
 		zap.String("app_port", cfg.AppPort),
@@ -57,7 +61,11 @@ func main() {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: cfg.RedisURL,
 	})
-	defer redisClient.Close()
+	defer func() {
+		if closeErr := redisClient.Close(); closeErr != nil {
+			log.ErrorMsg("failed to close redis client", zap.Error(closeErr))
+		}
+	}()
 
 	// Test Redis connection
 	if err := redisClient.Ping(context.Background()).Err(); err != nil {
@@ -159,7 +167,14 @@ func runMigrations(databaseURL string, log *logger.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
 	}
-	defer m.Close()
+	defer func() {
+		if sourceErr, dbErr := m.Close(); sourceErr != nil || dbErr != nil {
+			log.Warn("failed to close migration instance",
+				zap.Error(sourceErr),
+				zap.NamedError("database_error", dbErr),
+			)
+		}
+	}()
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to run migrations: %w", err)

@@ -49,7 +49,11 @@ func TestUnmarshalJSON(t *testing.T) {
 
 func TestRedisCache_SetGetTimeout(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			t.Logf("failed to sync logger: %v", err)
+		}
+	}()
 
 	// Exercise the mock through the same interface the cache expects;
 	// real Redis behavior is covered by the integration tests (testcontainers)

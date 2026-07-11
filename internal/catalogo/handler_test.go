@@ -59,20 +59,26 @@ func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, t
 
 	host, err := container.Host(ctx)
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate db container: %v", termErr)
+		}
 		t.Fatalf("Failed to get DB host: %v", err)
 	}
 
 	port, err := container.MappedPort(ctx, "5432/tcp")
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate db container: %v", termErr)
+		}
 		t.Fatalf("Failed to get DB port: %v", err)
 	}
 
 	dsn := "postgres://postgres:postgres@" + host + ":" + port.Port() + "/morfeu_test"
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate db container: %v", termErr)
+		}
 		t.Fatalf("Failed to create pool: %v", err)
 	}
 
@@ -97,13 +103,17 @@ func setupTestRedisForCatalogo(t *testing.T, ctx context.Context) (*redis.Client
 
 	host, err := container.Host(ctx)
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate redis container: %v", termErr)
+		}
 		t.Fatalf("Failed to get Redis host: %v", err)
 	}
 
 	port, err := container.MappedPort(ctx, "6379/tcp")
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate redis container: %v", termErr)
+		}
 		t.Fatalf("Failed to get Redis port: %v", err)
 	}
 
@@ -150,12 +160,24 @@ func TestListFilmsHTTP_Integration(t *testing.T) {
 	ctx := context.Background()
 
 	pool, dbContainer := setupTestDBForCatalogo(t, ctx)
-	defer dbContainer.Terminate(ctx)
+	defer func() {
+		if err := dbContainer.Terminate(ctx); err != nil {
+			t.Logf("failed to terminate db container: %v", err)
+		}
+	}()
 	defer pool.Close()
 
 	redisClient, redisContainer := setupTestRedisForCatalogo(t, ctx)
-	defer redisContainer.Terminate(ctx)
-	defer redisClient.Close()
+	defer func() {
+		if err := redisContainer.Terminate(ctx); err != nil {
+			t.Logf("failed to terminate redis container: %v", err)
+		}
+	}()
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			t.Logf("failed to close redis client: %v", err)
+		}
+	}()
 
 	time.Sleep(time.Second)
 
