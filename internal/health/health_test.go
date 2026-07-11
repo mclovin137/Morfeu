@@ -16,7 +16,7 @@ import (
 )
 
 // setupTestDBForHealth creates an ephemeral PostgreSQL test container
-func setupTestDBForHealth(t *testing.T, ctx context.Context) (*pgxpool.Pool, testcontainers.Container) {
+func setupTestDBForHealth(ctx context.Context, t *testing.T) (*pgxpool.Pool, testcontainers.Container) {
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -65,7 +65,7 @@ func setupTestDBForHealth(t *testing.T, ctx context.Context) (*pgxpool.Pool, tes
 }
 
 // setupTestRedisForHealth creates an ephemeral Redis test container
-func setupTestRedisForHealth(t *testing.T, ctx context.Context) (*redis.Client, testcontainers.Container) {
+func setupTestRedisForHealth(ctx context.Context, t *testing.T) (*redis.Client, testcontainers.Container) {
 	req := testcontainers.ContainerRequest{
 		Image:        "redis:7-alpine",
 		ExposedPorts: []string{"6379/tcp"},
@@ -112,7 +112,7 @@ func TestHealthEndpoint_AllOK(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup DB
-	pool, dbContainer := setupTestDBForHealth(t, ctx)
+	pool, dbContainer := setupTestDBForHealth(ctx, t)
 	defer func() {
 		if err := dbContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate db container: %v", err)
@@ -121,7 +121,7 @@ func TestHealthEndpoint_AllOK(t *testing.T) {
 	defer pool.Close()
 
 	// Setup Redis
-	redisClient, redisContainer := setupTestRedisForHealth(t, ctx)
+	redisClient, redisContainer := setupTestRedisForHealth(ctx, t)
 	defer func() {
 		if err := redisContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate redis container: %v", err)
@@ -180,7 +180,7 @@ func TestHealthEndpoint_RedisDown(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup DB only
-	pool, dbContainer := setupTestDBForHealth(t, ctx)
+	pool, dbContainer := setupTestDBForHealth(ctx, t)
 	defer func() {
 		if err := dbContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate db container: %v", err)
@@ -242,7 +242,7 @@ func TestHealthEndpoint_DBDown(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup Redis only
-	redisClient, redisContainer := setupTestRedisForHealth(t, ctx)
+	redisClient, redisContainer := setupTestRedisForHealth(ctx, t)
 	defer func() {
 		if err := redisContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate redis container: %v", err)

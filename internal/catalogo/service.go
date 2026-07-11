@@ -49,14 +49,14 @@ func (fs *FilmService) ListFilms(ctx context.Context) ([]db.Film, error) {
 			zap.String("action", "cache_hit"),
 		)
 		var films []db.Film
-		if err := json.Unmarshal(cachedData, &films); err != nil {
-			fs.logger.Warn("failed to unmarshal cached data",
-				zap.Error(err),
-			)
-			// Continue to fetch from database
-		} else {
+		unmarshalErr := json.Unmarshal(cachedData, &films)
+		if unmarshalErr == nil {
 			return films, nil
 		}
+		fs.logger.Warn("failed to unmarshal cached data",
+			zap.Error(unmarshalErr),
+		)
+		// Continue to fetch from database
 	}
 
 	// Cache miss or error - fetch from database

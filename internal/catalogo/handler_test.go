@@ -37,7 +37,7 @@ func TestFilmResponseConversion(t *testing.T) {
 }
 
 // setupTestDBForCatalogo creates an ephemeral PostgreSQL test container
-func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, testcontainers.Container) {
+func setupTestDBForCatalogo(ctx context.Context, t *testing.T) (*pgxpool.Pool, testcontainers.Container) {
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -86,7 +86,7 @@ func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, t
 }
 
 // setupTestRedisForCatalogo creates an ephemeral Redis test container
-func setupTestRedisForCatalogo(t *testing.T, ctx context.Context) (*redis.Client, testcontainers.Container) {
+func setupTestRedisForCatalogo(ctx context.Context, t *testing.T) (*redis.Client, testcontainers.Container) {
 	req := testcontainers.ContainerRequest{
 		Image:        "redis:7-alpine",
 		ExposedPorts: []string{"6379/tcp"},
@@ -159,7 +159,7 @@ func TestListFilmsHTTP_Integration(t *testing.T) {
 
 	ctx := context.Background()
 
-	pool, dbContainer := setupTestDBForCatalogo(t, ctx)
+	pool, dbContainer := setupTestDBForCatalogo(ctx, t)
 	defer func() {
 		if err := dbContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate db container: %v", err)
@@ -167,7 +167,7 @@ func TestListFilmsHTTP_Integration(t *testing.T) {
 	}()
 	defer pool.Close()
 
-	redisClient, redisContainer := setupTestRedisForCatalogo(t, ctx)
+	redisClient, redisContainer := setupTestRedisForCatalogo(ctx, t)
 	defer func() {
 		if err := redisContainer.Terminate(ctx); err != nil {
 			t.Logf("failed to terminate redis container: %v", err)

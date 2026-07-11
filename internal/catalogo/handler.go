@@ -8,6 +8,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// contextKey is a private type for context values set by this package,
+// avoiding collisions with keys set by other packages (revive: context-keys-type).
+type contextKey string
+
+const traceIDContextKey contextKey = "trace_id"
+
 // FilmHandler handles film-related HTTP requests
 type FilmHandler struct {
 	service *FilmService
@@ -40,7 +46,7 @@ func (h *FilmHandler) ListFilms(c echo.Context) error {
 	}
 
 	// Create context with trace ID
-	ctx := context.WithValue(c.Request().Context(), "trace_id", traceID)
+	ctx := context.WithValue(c.Request().Context(), traceIDContextKey, traceID)
 
 	// Call service
 	films, err := h.service.ListFilms(ctx)
