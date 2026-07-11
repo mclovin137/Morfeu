@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -147,6 +148,15 @@ func main() {
 	log.Info("Server stopped")
 }
 
+// safeIntToInt32 converts an int config value to int32, validating the range
+// to avoid a silent overflow conversion (gosec G115).
+func safeIntToInt32(name string, v int) (int32, error) {
+	if v < math.MinInt32 || v > math.MaxInt32 {
+		return 0, fmt.Errorf("%s out of int32 range: %d", name, v)
+	}
+	return int32(v), nil
+}
+
 // createDBPool creates a PostgreSQL connection pool
 func createDBPool(cfg *config.Config, log *logger.Logger) (*pgxpool.Pool, error) {
 	poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseURL)
@@ -154,8 +164,16 @@ func createDBPool(cfg *config.Config, log *logger.Logger) (*pgxpool.Pool, error)
 		return nil, fmt.Errorf("failed to parse database URL: %w", err)
 	}
 
-	poolConfig.MinConns = int32(cfg.PoolMinSize)
-	poolConfig.MaxConns = int32(cfg.PoolMaxSize)
+	minConns, err := safeIntToInt32("PoolMinSize", cfg.PoolMinSize)
+	if err != nil {
+		return nil, err
+	}
+	maxConns, err := safeIntToInt32("PoolMaxSize", cfg.PoolMaxSize)
+	if err != nil {
+		return nil, err
+	}
+	poolConfig.MinConns = minConns
+	poolConfig.MaxConns = maxConns
 	poolConfig.MaxConnLifetime = time.Minute * 15
 	poolConfig.MaxConnIdleTime = time.Minute * 5
 	poolConfig.ConnConfig.ConnectTimeout = cfg.PoolTimeout
