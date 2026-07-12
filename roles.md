@@ -51,7 +51,7 @@ Definidos em `.claude/agents/`. Invocação: pedir explicitamente ("consulte o a
 
 **Todos os 5 agentes participam do refinamento de todo épico** (§6.14) — cada um emite parecer do seu domínio, uma vez por épico, antes dos PRDs das tasks.
 
-**Modelos e effort por agente** (frontmatter em `.claude/agents/`): `backend-dev`, `qa`, `security` e `sre-devops` rodam em **Sonnet com effort `medium`** — a inteligência pesada do fluxo vive nas decisões (refinamento, PRD, ADRs), que chegam prontas a esses agentes; o **`arquiteto` herda o modelo da sessão principal** (é o agente de julgamento — decisões de arquitetura e trade-offs). Rotinas headless (hook do vault) rodam em **Haiku**. Alterar modelo/effort de agente é mudança estrutural (§8).
+**Modelos e effort por agente** (frontmatter em `.claude/agents/`): `backend-dev`, `qa`, `security` e `sre-devops` rodam em **Sonnet com effort `medium`** — a inteligência pesada do fluxo vive nas decisões (refinamento, PRD, ADRs), que chegam prontas a esses agentes; o **`arquiteto` herda o modelo da sessão principal** (é o agente de julgamento — decisões de arquitetura e trade-offs). Rotinas headless (hook do vault) rodam em **Haiku**. O `backend-dev` roda com **lista explícita de tools** no frontmatter (dieta de contexto por spawn — decisão de 2026-07-12); os demais já têm listas restritas. Alterar modelo/effort/tools de agente é mudança estrutural (§8).
 
 ---
 
@@ -125,7 +125,7 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 | `doc.md` | mini-UML da aplicação: visão, atores, componentes, domínio, fluxos críticos, RNFs, volumetria, trade-offs | sessão principal, com aval do usuário | criado na descoberta (§6.15); atualizado quando arquitetura/domínio/fluxo crítico mudar |
 | `lib.md` | registro de dependências e versões | quem adiciona dependência | **toda** nova dependência (§6.9) |
 | `state.md` | estado atual + histórico recente | sessão principal | fim de cada task e antes do PR |
-| `plan.md` | plano vivo da task em andamento | sessão principal durante implementação | continuamente durante a task |
+| `plan.md` | plano vivo da task em andamento | sessão principal durante implementação | 3 checkpoints: abertura, meio/desvio, fechamento (§6.11) |
 | `docs/roadmap.md` | visão geral das entregas | sessão principal, com aval do usuário | quando prioridades mudarem |
 
 ---
@@ -199,9 +199,10 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 4. **Boas práticas de SQL são critério de aprovação** (detalhes em `.claude/skills/criar-migration/boas-praticas-sql.md`): toda FK nova indexada; índices justificados pelos padrões de acesso do PRD; queries de fluxo crítico validadas com `EXPLAIN` — **sem full scan não justificado em tabela grande**; operações compatíveis com zero-downtime (índice concorrente, constraint `NOT VALID`+`VALIDATE`, backfill em lotes, expand-contract) quando houver ambiente com tráfego.
 
 ### 6.11 Arquivos de controle
-1. `plan.md` atualizado **durante** a implementação — reflete o estado real da task.
-2. `state.md` atualizado ao **final** de cada task e antes do PR.
+1. `plan.md` atualizado em **3 checkpoints** — abertura da task, meio (ou a qualquer desvio de rota relevante) e fechamento — **não a cada commit**. O registro contínuo fino fica com a memória de sessão (§6.13); o plan.md reflete o estado real da task em cada checkpoint.
+2. `state.md` atualizado ao **final** de cada task e antes do PR — **consolidado num único commit de fechamento** junto com o registro de auditoria e o checkpoint final do plan.md (não espalhar em commits `docs:` avulsos).
 3. `roles.md` atualizado a cada regra estrutural nova.
+4. *(Regra de economia — decisão do usuário, 2026-07-12: ~40% dos commits até a task 0004 eram `docs:` de controle; o batching corta ~15–40k tokens/task sem perder rastreabilidade.)*
 
 ### 6.12 MCP Context7
 1. Sempre que houver dúvida sobre biblioteca, framework ou versão, **consultar o Context7** (configurado em `.mcp.json`).
