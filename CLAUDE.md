@@ -14,13 +14,10 @@ Fluxo padrão: `descoberta → roadmap → refinamento do épico → task → PR
 2. **Gate híbrido de auditoria** (roles.md §6.4): pré-push exige scan de secrets limpo (gitleaks local); **nenhum merge sem CI verde + revisão de julgamento aprovada** (skill `auditoria`, passe único sobre o diff do PR).
 3. **ADR só com autorização explícita do usuário** (`criar-adr`).
 4. Toda dependência nova registrada em `lib.md` antes de usar; dúvida sobre lib/framework/versão → consultar **Context7**, nunca presumir.
-5. Manter `plan.md` atualizado durante a task e `state.md` ao concluir; o hook `SessionEnd` registra a sessão no vault automaticamente — `/obsidian-decide` apenas para decisões relevantes (roles.md §6.13).
+5. Manter `plan.md` atualizado nos 3 checkpoints da task (abertura, meio/desvio, fechamento — roles.md §6.11) e `state.md` ao concluir; o hook `SessionEnd` registra a sessão no vault automaticamente — `/obsidian-decide` apenas para decisões relevantes (roles.md §6.13).
 
 > Nota: `plan.md` na raiz é o plano da task corrente **do projeto** — não confundir com o plan mode do Claude Code.
 
-## Scaffold atual (placeholder)
+## Stack e ambiente
 
-O template é **stack-agnóstico**. O scaffold Java foi removido em 2026-07-03 — resta apenas o `pom.xml` placeholder (sem dependências nem plugins) e `src/` vazio. A stack real nasce da descoberta (`iniciar-projeto`, roadmap item 2).
-
-- No WSL há JDK 25 (Corretto/SDKMAN), mas **não há `mvn` no PATH nem wrapper** — builds Maven são feitos pelo IntelliJ no Windows.
-- Testes exigem adicionar framework ao `pom.xml` primeiro (registrar em `lib.md`).
+Stack Go 1.25 + Echo + sqlc/pgx + Redis (definida na descoberta; ADRs 0001–0007). **Antes de rodar build/test/lint, leia `docs/ambiente-dev.md`** — comandos canônicos do WSL2 (Go fora do PATH, `-race` e lint só via container, `GOTOOLCHAIN=auto` p/ sqlc). Não redescobrir o ambiente por tentativa e erro.
