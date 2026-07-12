@@ -4,13 +4,30 @@
 
 ## Estado corrente (2026-07-12)
 
-**Task 0004 — Pipeline de CI + build ARM64 (E0c-CI): CONCLUÍDA — validações completas, pronta para merge do PR #6** (branch `chore/0004-pipeline-ci-arm64`; task `docs/tasks/0004-pipeline-ci-arm64.md`; **PRD `docs/prd/0004-pipeline-ci-arm64.md`**, criado 2026-07-11 consumindo o refinamento do E0 §"Task E0c-CI", sem nova rodada de agentes — §6.2.5). Push + PR #6 (CI verde no run real — CA01); **6/6 PRs de prova bloquearam no job esperado** (CA02/CA03 — evidência com links dos runs comentada no PR #6; provas #7–#12 fechadas sem merge, branches removidas); **branch protection ativa na main** (check `ci` obrigatório + `enforce_admins` — CA08); 3 commits de correção pós-push (ci.yml/.golangci.yml p/ CI verde) cobertos por **passe de julgamento delta APROVADO em 2026-07-12** (ver Auditorias).
+**Task 0002 — Outbox + RabbitMQ + worker idempotente (E0b): INICIADA — status: não iniciada a implementação; próximo passo = PRD** (branch `feature/0002-outbox-rabbitmq`, recriada a partir da main pós-0004 — o commit antigo `84a4b50` com o rascunho pré-refinamento foi descartado, superseded pelo reescopo da cerimônia; task `docs/tasks/0002-outbox-rabbitmq.md`; PRD `docs/prd/0002-outbox-rabbitmq.md` a criar just-in-time consumindo `docs/refinamentos/E0-walking-skeleton.md` §"Task E0b" + **ADR 0007**, sem nova rodada de agentes — §6.2.5).
 
-**Objetivo:** substituir o CI placeholder pelo pipeline real de gates (lint, vet, `test -race` com testcontainers, govulncheck, sqlc vet, gitleaks, migrations condicional por path, build `linux/arm64` → GHCR + smoke) em runner ARM64 nativo, com supply chain pinada (actions por SHA + Dependabot + base image por digest) — **peça mecânica do gate híbrido §6.4**; a partir do merge, a skill `auditoria` reduz ao passe único de julgamento (fim do modo transição). Inclui **quitação do débito de lint da E0a** (43 issues + `time.Sleep` nos testes — pendências técnicas do state.md), pois o gate de lint não pode nascer vermelho.
+**Objetivo:** provar o caminho assíncrono do walking skeleton — `catalogo.filme_criado` atravessa outbox transacional (`Enqueue(tx, evt)` + relay com `FOR UPDATE SKIP LOCKED` + confirms síncronos) → RabbitMQ (topic `morfeu.events`, quorum queue, `x-delivery-limit=3`, DLQ) → consumidor idempotente (dedup em `processed_messages` na mesma TX do efeito) com graceful shutdown. UM evento, UMA queue; emissão por subcomando CLI na mesma TX via service real. ~15–17 arquivos; deps novas: `amqp091-go` + `otel/propagation` (registrar no lib.md antes do primeiro import).
 
-**Decisão de abertura:** shell SPA fica **fora** (task própria, 0005 candidata) — o débito de lint consome a folga do limite de 30 arquivos; desvio consciente da recomendação não-bloqueante do refinamento, registrado no task doc.
+### Plano da task 0002 (status: não iniciada)
 
-### Plano da task 0004 (status: implementação local concluída em 2026-07-12)
+1. PRD 0002 (`criar-prd`, just-in-time) — consolidar exigências do refinamento + ADR 0007; especificar comportamento durante desconexão do broker e ownership das tabelas de plataforma.
+2. Migrations 002/003 (`criar-migration`): `outbox_events`, `processed_messages`.
+3. Compose: RabbitMQ 3.13-management-alpine (watermark ~768MB, disk_free_limit ~512MB, 15672 só localhost, healthcheck + `service_healthy`); `.env.example`.
+4. Plataforma: `internal/outbox/` (enqueue + relay + confirms + reconexão) e `internal/broker/` (cliente, topologia idempotente, consumer runtime, wrapper de dedup); depguard: domínio ↛ `amqp091-go`.
+5. Domínio: emissão no service do catálogo (`WithTx`) + subcomando CLI; handler do evento no consumidor; modos `-mode=api|worker|all` no main.
+6. Envelope com `traceparent` (W3C, pacote leve `otel/propagation`); readiness com RabbitMQ sem quebrar contrato E0a; contador `outbox_pendentes`.
+7. Testes de integração (testcontainers RabbitMQ real, `-race`, goleak): CA01–CA09 do task doc.
+8. Gate: gitleaks pré-push → push → PR → CI verde → passe único de julgamento → merge.
+
+---
+
+### Task 0004 — Pipeline de CI + build ARM64 (E0c-CI): CONCLUÍDA e MERGEADA (histórico)
+
+**Merge `7585522` (PR #6, 2026-07-12).** Pipeline real de gates em runner ARM64 nativo substituiu o placeholder; débito de lint da E0a quitado (0 issues); wait strategies no lugar de `time.Sleep`; supply chain pinada (actions por SHA verificados, gitleaks por checksum, base image por digest, Dependabot); `.gitleaks.toml`; Dockerfile corrigido (copia `migrations/`); governança no modo-alvo (§6.4 — a partir deste merge, os itens mecânicos da auditoria rodam no CI e a skill `auditoria` reduz ao passe único de julgamento). Validações: CA01 run real verde; **CA02/CA03: 6/6 PRs de prova bloquearam no job esperado** (#7 govulncheck, #8 errcheck, #9 data race, #10 SQL inválido, #11 secret, #12 migration sem down + prova positiva do path-filter; evidência com links comentada no PR #6; provas fechadas sem merge); **CA08: branch protection na main** (check `ci` + `enforce_admins`); 3 fixes pós-push (Go `1.25.x`+`check-latest` p/ govulncheck, `GOTOOLCHAIN=auto` p/ sqlc, chave revive inválida removida) cobertos por passe de julgamento delta APROVADO (ver Auditorias).
+
+Decisão de abertura registrada: shell SPA ficou **fora** (task própria, 0005 candidata) — desvio consciente da recomendação não-bloqueante do refinamento.
+
+#### Plano executado da task 0004
 
 1. ~~PRD 0004 (`criar-prd`)~~ — feito, `docs/prd/0004-pipeline-ci-arm64.md` (runner ARM64 c/ fallback documentado; actions registradas no PRD, não no lib.md; lista dos 43 issues por linter/arquivo).
 2. ~~Quitação do débito de lint~~ — feita em 6 commits por linter (`790b190` errcheck, `ea6f7ac` revive, `0c8d6d5` staticcheck, `3e90383` gosec, `d2c00f7` errorlint, `c9acf40` funlen): `golangci-lint run ./...` → **0 issues**; asserts intactos; suíte completa `-race` verde.
