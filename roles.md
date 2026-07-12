@@ -30,7 +30,7 @@ descoberta → roadmap → refinamento do épico → task → PRD → implementa
 | 3. Task | `docs/tasks/NNNN-*.md` + branch | roadmap + refinamento do épico | escopo pequeno, máx. 30 arquivos (§6.3); trivial dispensa refinamento (§6.14.6) |
 | 4. PRD | `docs/prd/NNNN-*.md` | exigências do refinamento do épico | just-in-time ao abrir a task, sem novos agentes (§6.2.5) |
 | 5. Implementação | código + testes | PRD, ADRs | seguir padrões; atualizar `plan.md` (§6.11) |
-| 6. Gate pré-push | scan de secrets limpo | diff da branch | §6.4.1; **transição:** skill `auditoria` completa enquanto o CI (E0c) não existir (§6.4.5) |
+| 6. Gate pré-push | scan de secrets limpo | diff da branch | §6.4.1 (gitleaks local; mecânicos rodam no CI — §6.4.2) |
 | 7. PR | Pull Request | template de PR | rastreável até task e PRD (§6.5) |
 | 8. CI + revisão | pipeline verde + revisão de julgamento | diff do PR | itens mecânicos no CI; julgamento em 1 passe (§6.4.2–3) |
 | 9. Merge | branch integrada em `main` | CI verde + revisão aprovada | **nenhum merge sem o gate completo** (§6.4.1) |
@@ -155,11 +155,11 @@ Avaliadas e consideradas cobertas, redundantes ou prematuras hoje; instalar apen
 
 ### 6.4 Auditoria (gate obrigatório — modelo híbrido)
 1. **Nenhum merge sem o gate completo: CI verde + revisão de julgamento aprovada.** Pré-push, o requisito é **scan de secrets limpo** (gitleaks local; push protection do GitHub como segunda barreira).
-2. **Itens mecânicos — automatizados no CI** (nascem no E0c): testes (`go test -race` + gate de cobertura), lint (`golangci-lint`), CVEs (`govulncheck`), secrets (gitleaks), escopo ≤ 30 arquivos, migrations validadas em PG efêmero, diff `go.mod` × `lib.md`, presença/atualização de `plan.md` e `state.md`. CI roda no GitHub Actions — custo zero de tokens.
+2. **Itens mecânicos — automatizados no CI** (`.github/workflows/ci.yml`, desde a task 0004): lint (`golangci-lint`), `go vet`, secrets (gitleaks — working tree + histórico), CVEs (`govulncheck`), `sqlc vet` + diff do código gerado, testes (`go test -race`, suíte completa com testcontainers), migrations validadas em PG efêmero (job condicional por path) e build `linux/arm64` + smoke da imagem. CI roda no GitHub Actions — custo zero de tokens.
 3. **Itens de julgamento — um único passe de revisão sobre o diff do PR** (um agente revisor, não dois): aderência ao PRD, conformidade com ADRs, overengineering, PII em logs, qualidade geral.
 4. **Reauditoria escopada:** veredito REPROVADO → corrigir e revalidar **apenas os itens reprovados** (máx. 1 rodada extra; persistindo, escalar ao usuário). Nunca re-auditar o diff inteiro por correção pontual.
-5. **Transição:** enquanto o pipeline do E0c não existir, a skill `auditoria` roda pré-push cobrindo os 13 itens — já com o passe único de julgamento (item 3) e a reauditoria escopada (item 4).
-6. Evolução futura: branch protection exigindo os jobs do CI + hook PreToolUse bloqueando `git push` com secrets/gate pendente.
+5. **Itens mecânicos ainda sem job próprio** (cobertos no passe de julgamento até serem automatizados): gate de cobertura mínima (aguarda baseline — fora de escopo do PRD 0004), contagem ≤ 30 arquivos, diff `go.mod` × `lib.md`, presença/atualização de `plan.md` e `state.md`.
+6. Branch protection da `main` exige o check `ci` (task 0004). Evolução futura: hook PreToolUse bloqueando `git push` com secrets/gate pendente.
 
 ### 6.5 Git e Pull Request
 1. Branches: `feature/NNNN-nome` · `fix/NNNN-nome` · `chore/NNNN-nome` · `refactor/NNNN-nome` (NNNN = id da task).
