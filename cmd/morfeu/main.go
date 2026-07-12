@@ -95,10 +95,25 @@ func main() {
 	filmHandler := catalogo.NewFilmHandler(filmService)
 	healthHandler := health.NewHealthHandler(dbPool, redisClient)
 
-	// Create Echo instance
+	// Create Echo instance with middleware and routes
+	e := setupRouter(log, filmHandler, healthHandler)
+
+	// Start server in a goroutine
+	go func() {
+		if err := e.Start(":" + cfg.AppPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.ErrorMsg("Server error", zap.Error(err))
+		}
+	}()
+
+	log.Info("Server started", zap.String("port", cfg.AppPort))
+
+	waitForShutdown(e, log)
+}
+
+// setupRouter creates the Echo instance, wiring middleware and routes.
+func setupRouter(log *logger.Logger, filmHandler *catalogo.FilmHandler, healthHandler *health.HealthHandler) *echo.Echo {
 	e := echo.New()
 
-	// Middleware
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		StackSize: 1 << 10, // 1 KB
 	}))
@@ -118,20 +133,15 @@ func main() {
 		},
 	}))
 
-	// Routes
 	e.GET("/health", healthHandler.Check)
 	e.GET("/filmes", filmHandler.ListFilms)
 
-	// Start server in a goroutine
-	go func() {
-		if err := e.Start(":" + cfg.AppPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.ErrorMsg("Server error", zap.Error(err))
-		}
-	}()
+	return e
+}
 
-	log.Info("Server started", zap.String("port", cfg.AppPort))
-
-	// Graceful shutdown
+// waitForShutdown blocks until a termination signal arrives, then shuts down
+// the server gracefully within a fixed timeout.
+func waitForShutdown(e *echo.Echo, log *logger.Logger) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
