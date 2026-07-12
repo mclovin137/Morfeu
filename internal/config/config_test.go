@@ -31,9 +31,15 @@ func TestLoadConfig_Defaults(t *testing.T) {
 func TestLoadConfig_EnvOverride(t *testing.T) {
 	// Clear and set environment
 	os.Clearenv()
-	os.Setenv("APP_PORT", "9000")
-	os.Setenv("LOG_LEVEL", "debug")
-	os.Setenv("CACHE_TTL_SECONDS", "600")
+	if err := os.Setenv("APP_PORT", "9000"); err != nil {
+		t.Fatalf("failed to set APP_PORT: %v", err)
+	}
+	if err := os.Setenv("LOG_LEVEL", "debug"); err != nil {
+		t.Fatalf("failed to set LOG_LEVEL: %v", err)
+	}
+	if err := os.Setenv("CACHE_TTL_SECONDS", "600"); err != nil {
+		t.Fatalf("failed to set CACHE_TTL_SECONDS: %v", err)
+	}
 
 	cfg, err := LoadConfig()
 	if err != nil {

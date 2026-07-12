@@ -8,8 +8,8 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 - **Última task concluída:** **0003 — Conformidade package-by-domain** (pré-E0b) — implementada, auditoria APROVADA (2026-07-10, relatório no `plan.md`) e **mergeada na main** (PR #4, merge `a391cdb`, 2026-07-10). Realinhamento completo ao ADR 0003 (`internal/catalogo/`, `internal/health/`, `cmd/morfeu`, `depguard` v2 com fronteiras módulo↛módulo e domínio↛driver de infra, `sqlc.yaml`/Makefile/Dockerfile corrigidos) + teste HTTP real de `GET /filmes`. Antes dela: 0001 (E0a, merge `6916ab6`) + fix emergencial do build (PR #3, `fa2a136` — a E0a mergeada nunca tinha compilado; expôs a urgência do E0c-CI).
 - **Épico E0 refinado (2026-07-09) e perguntas respondidas (2026-07-11):** cerimônia por épico (§6.14) em `docs/refinamentos/E0-walking-skeleton.md` — task 0002 reescopada; **usuário aprovou a reordenação** (E0c dividido em E0c-CI/E0c-CD; ordem: conformidade ✅ → **E0c-CI** → E0b → E0c-CD → E0d; roadmap atualizado) e **autorizou o ADR 0007 de mensageria** (criado). PRDs de E0b/E0c/E0d desbloqueados na nova ordem.
-- **Task atual:** nenhuma em andamento. **Próxima: E0c-CI** (pipeline de CI + build ARM64 + shell SPA — peça do gate híbrido §6.4; exigências já definidas no refinamento E0).
-- **PRD atual:** nenhum ativo. (Próximo: PRD da task E0c-CI; PRD da 0002/E0b na sequência, consumindo o refinamento + ADR 0007.)
+- **Task atual:** **0004 — Pipeline de CI + build ARM64 (E0c-CI)** (`docs/tasks/0004-pipeline-ci-arm64.md`, branch `chore/0004-pipeline-ci-arm64`, criada 2026-07-11; **CONCLUÍDA em 2026-07-12, PR #6 validado e pronto para merge** — débito de lint quitado a 0 issues, wait strategies, `ci.yml` real com gates/test/migrations-condicional/build ARM64+smoke, supply chain pinada, `.gitleaks.toml`; **CA01** run real verde, **CA02/CA03** 6/6 PRs de prova bloqueados no job esperado (evidência no PR #6; provas fechadas), **CA08** branch protection na main com check `ci` + `enforce_admins`; delta pós-push coberto por passe de julgamento APROVADO — detalhes no `plan.md`). Decisão de abertura: **shell SPA fica fora** (task própria; limite de 30 arquivos após absorver o débito de lint) — desvio consciente da recomendação não-bloqueante do refinamento.
+- **PRD atual:** **0004** (`docs/prd/0004-pipeline-ci-arm64.md`, ativo, 2026-07-11) — pipeline de CI + build ARM64, consumindo refinamento E0 §"Task E0c-CI"; ~22 arquivos estimados; skills de apoio: `golang-lint`, `github-ops`. (PRD da 0002/E0b na sequência, consumindo o refinamento + ADR 0007.)
 - **ADRs ativos:** 0001 (Go+Echo) · 0002 (sqlc+pgx) · 0003 (fronteiras/camadas) · 0004 (padrões de código Go) · 0005 (DDD tático + patterns) · 0006 (estratégia de testes) — aceitos em 2026-07-07 — · **0007 (Mensageria: RabbitMQ)** — aceito em 2026-07-11 com autorização explícita (pergunta 2 do refinamento E0). Restantes (trava de assento, saga) nascem nos refinamentos E4/E6.
 
 ## Últimas decisões relevantes
@@ -26,14 +26,14 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Pendências técnicas
 
-- **Débito de lint da E0a (registro da auditoria 0003, 2026-07-10):** a migração do `.golangci.yml` para v2 (o config v1 nunca rodou) surfaced **43 issues pré-existentes** (errcheck 26, revive 6, staticcheck 4, errorlint 4, gosec 2 — conversões int→int32 em `main.go` —, funlen 1); depguard limpo. Limpar quando o gate de lint do **E0c-CI** entrar. Junto: trocar `time.Sleep(1s)` por estratégias `wait.For*` nos 3 arquivos de teste que esperam prontidão de container.
+- ~~Débito de lint da E0a (43 issues) + `time.Sleep` nos testes~~ → **quitado na task 0004 (2026-07-12)**: `golangci-lint run ./...` = 0 issues (6 commits mecânicos, asserts intactos); `time.Sleep(1s)` substituído por `wait.ForLog(...).WithOccurrence(2)` (PG) e timeouts explícitos (Redis).
 - **Ambiente de build local (registro 2026-07-10):** Go 1.24.5 instalado user-level em `~/.local/go/bin` (fora do PATH padrão — exportar no shell); **sem gcc no WSL** → `go test -race` roda via container `golang:1.25` com socket Docker montado (`TESTCONTAINERS_HOST_OVERRIDE` = IP do host). Instalar gcc (apt) e adicionar Go ao PATH ficam a critério do usuário.
 
 - **Hardening do hook `obsidian-session-end.sh`** (achado da auditoria de 2026-07-07, severidade média, não bloqueante): trocar `--dangerously-skip-permissions` por allowlist escopada (`--allowedTools "Read Write Edit Glob Grep"`) e mover o log de `/tmp` para diretório do usuário; junto, hardening da config `.claude/` (permissions block no settings.json) — candidata a task junto com o enforcement do gate §6.4.5.
 - **Item 0 do roadmap (pré-bootstrap):** mover repo p/ WSL ext4; criar conta Oracle PAYG + VM A1 (semana 1 — capacidade é loteria); remover `pom.xml` placeholder na task de bootstrap. ~~Criar repo GitHub público e primeiro push~~ → feito em 2026-07-07 (auditoria aprovada; secret scanning + push protection habilitados na criação).
 - **Rotacionar a CONTEXT7_API_KEY** (exposta no chat da sessão de descoberta — severidade baixa; dashboard context7.com) e atualizar `.env` + `.claude/settings.local.json`.
 - Domínio para e-mail transacional (Resend/Brevo exigem domínio verificado) — pendente; demo nasce em subdomínio gratuito.
-- Preencher steps reais do `.github/workflows/ci.yml` no E0.
+- ~~Preencher steps reais do `.github/workflows/ci.yml` no E0~~ → feito na task 0004 (pipeline real; ver `plan.md`).
 - Definições que ficaram para o refinamento: intervalo de limpeza entre sessões; alvo do SLI de checkout fim-a-fim (pós-baseline); detalhes do template JSON de sala.
 
 ## Riscos conhecidos
@@ -44,7 +44,7 @@ Atualizado ao final de cada task e antes de cada PR (regras em `roles.md` §6.11
 
 ## Próximos passos
 
-1. **Task E0c-CI** (próxima da fila, desbloqueada): `/criar-task` → PRD (consome exigências do refinamento E0 §"Task E0c-CI": pipeline lint→vet→test -race→govulncheck→gitleaks→build ARM64→GHCR, PRs de prova de cada gate, testcontainers 90–120s, shell SPA estático) → implementação. Ao entrar, o CI assume os itens mecânicos da auditoria (gate híbrido §6.4) e absorve o débito de lint registrado nas pendências.
+1. **Task 0004 (E0c-CI)**: ~~criar-task~~ ✅ → ~~PRD~~ ✅ → ~~implementação local~~ ✅ → ~~auditoria pré-push~~ ✅ → ~~push + PR #6 + CA01 (run real verde)~~ ✅ → ~~provas CA02/CA03 (6/6 bloqueadas)~~ ✅ → ~~branch protection CA08~~ ✅ → ~~passe de julgamento do delta~~ ✅ (2026-07-12) → **merge do PR #6**. A partir do merge, o CI assume os itens mecânicos da auditoria (gate híbrido §6.4 no modo-alvo).
 2. **Item 0 do roadmap** (ação do usuário, iniciar já — capacidade A1 é loteria): conta Oracle PAYG + VM A1; mover repo p/ WSL ext4. Define o sequenciamento do E0c-CD.
 3. Depois: PRD da 0002 (E0b) consumindo as exigências do refinamento + **ADR 0007** → implementação (branch `feature/0002-outbox-rabbitmq` já existe localmente).
 4. ~~Respostas das 2 perguntas do refinamento E0~~ → **respondidas em 2026-07-11** (reordenação aprovada; ADR 0007 autorizado/criado).

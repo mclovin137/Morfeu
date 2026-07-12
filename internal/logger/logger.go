@@ -58,7 +58,7 @@ func (l *Logger) Info(message string, fields ...zapcore.Field) {
 
 // ErrorMsg logs an error message with structured fields
 func (l *Logger) ErrorMsg(message string, fields ...zapcore.Field) {
-	l.Logger.Error(message, fields...)
+	l.Error(message, fields...)
 }
 
 // Warn logs a warning message with structured fields

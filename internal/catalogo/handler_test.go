@@ -37,7 +37,7 @@ func TestFilmResponseConversion(t *testing.T) {
 }
 
 // setupTestDBForCatalogo creates an ephemeral PostgreSQL test container
-func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, testcontainers.Container) {
+func setupTestDBForCatalogo(ctx context.Context, t *testing.T) (*pgxpool.Pool, testcontainers.Container) {
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -46,7 +46,10 @@ func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, t
 			"POSTGRES_PASSWORD": "postgres",
 			"POSTGRES_DB":       "morfeu_test",
 		},
-		WaitingFor: wait.ForLog("database system is ready to accept connections"),
+		// O log aparece duas vezes (initdb + processo final) — esperar a 2ª ocorrência
+		// evita conectar durante o restart interno do initdb.
+		WaitingFor: wait.ForLog("database system is ready to accept connections").
+			WithOccurrence(2).WithStartupTimeout(120 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -59,20 +62,26 @@ func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, t
 
 	host, err := container.Host(ctx)
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate db container: %v", termErr)
+		}
 		t.Fatalf("Failed to get DB host: %v", err)
 	}
 
 	port, err := container.MappedPort(ctx, "5432/tcp")
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate db container: %v", termErr)
+		}
 		t.Fatalf("Failed to get DB port: %v", err)
 	}
 
 	dsn := "postgres://postgres:postgres@" + host + ":" + port.Port() + "/morfeu_test"
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate db container: %v", termErr)
+		}
 		t.Fatalf("Failed to create pool: %v", err)
 	}
 
@@ -80,11 +89,11 @@ func setupTestDBForCatalogo(t *testing.T, ctx context.Context) (*pgxpool.Pool, t
 }
 
 // setupTestRedisForCatalogo creates an ephemeral Redis test container
-func setupTestRedisForCatalogo(t *testing.T, ctx context.Context) (*redis.Client, testcontainers.Container) {
+func setupTestRedisForCatalogo(ctx context.Context, t *testing.T) (*redis.Client, testcontainers.Container) {
 	req := testcontainers.ContainerRequest{
 		Image:        "redis:7-alpine",
 		ExposedPorts: []string{"6379/tcp"},
-		WaitingFor:   wait.ForLog("Ready to accept connections"),
+		WaitingFor:   wait.ForLog("Ready to accept connections").WithStartupTimeout(90 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -97,13 +106,17 @@ func setupTestRedisForCatalogo(t *testing.T, ctx context.Context) (*redis.Client
 
 	host, err := container.Host(ctx)
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate redis container: %v", termErr)
+		}
 		t.Fatalf("Failed to get Redis host: %v", err)
 	}
 
 	port, err := container.MappedPort(ctx, "6379/tcp")
 	if err != nil {
-		container.Terminate(ctx)
+		if termErr := container.Terminate(ctx); termErr != nil {
+			t.Logf("failed to terminate redis container: %v", termErr)
+		}
 		t.Fatalf("Failed to get Redis port: %v", err)
 	}
 
@@ -149,15 +162,25 @@ func TestListFilmsHTTP_Integration(t *testing.T) {
 
 	ctx := context.Background()
 
-	pool, dbContainer := setupTestDBForCatalogo(t, ctx)
-	defer dbContainer.Terminate(ctx)
+	pool, dbContainer := setupTestDBForCatalogo(ctx, t)
+	defer func() {
+		if err := dbContainer.Terminate(ctx); err != nil {
+			t.Logf("failed to terminate db container: %v", err)
+		}
+	}()
 	defer pool.Close()
 
-	redisClient, redisContainer := setupTestRedisForCatalogo(t, ctx)
-	defer redisContainer.Terminate(ctx)
-	defer redisClient.Close()
-
-	time.Sleep(time.Second)
+	redisClient, redisContainer := setupTestRedisForCatalogo(ctx, t)
+	defer func() {
+		if err := redisContainer.Terminate(ctx); err != nil {
+			t.Logf("failed to terminate redis container: %v", err)
+		}
+	}()
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			t.Logf("failed to close redis client: %v", err)
+		}
+	}()
 
 	if err := seedTestFilms(ctx, pool); err != nil {
 		t.Fatalf("Failed to seed films: %v", err)

@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -36,7 +38,11 @@ func main() {
 
 	// Initialize logger
 	log := logger.NewLogger(cfg.LogLevel)
-	defer log.Sync()
+	defer func() {
+		if syncErr := log.Sync(); syncErr != nil {
+			fmt.Fprintf(os.Stderr, "failed to sync logger: %v\n", syncErr)
+		}
+	}()
 
 	log.Info("Starting Morfeu application",
 		zap.String("app_port", cfg.AppPort),
@@ -57,7 +63,11 @@ func main() {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: cfg.RedisURL,
 	})
-	defer redisClient.Close()
+	defer func() {
+		if closeErr := redisClient.Close(); closeErr != nil {
+			log.ErrorMsg("failed to close redis client", zap.Error(closeErr))
+		}
+	}()
 
 	// Test Redis connection
 	if err := redisClient.Ping(context.Background()).Err(); err != nil {
@@ -85,31 +95,53 @@ func main() {
 	filmHandler := catalogo.NewFilmHandler(filmService)
 	healthHandler := health.NewHealthHandler(dbPool, redisClient)
 
-	// Create Echo instance
-	e := echo.New()
-
-	// Middleware
-	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
-		StackSize: 1 << 10, // 1 KB
-	}))
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: `${time_rfc3339} | ${method} ${uri} | ${status} | ${latency_human}` + "\n",
-	}))
-
-	// Routes
-	e.GET("/health", healthHandler.Check)
-	e.GET("/filmes", filmHandler.ListFilms)
+	// Create Echo instance with middleware and routes
+	e := setupRouter(log, filmHandler, healthHandler)
 
 	// Start server in a goroutine
 	go func() {
-		if err := e.Start(":" + cfg.AppPort); err != nil && err != http.ErrServerClosed {
+		if err := e.Start(":" + cfg.AppPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.ErrorMsg("Server error", zap.Error(err))
 		}
 	}()
 
 	log.Info("Server started", zap.String("port", cfg.AppPort))
 
-	// Graceful shutdown
+	waitForShutdown(e, log)
+}
+
+// setupRouter creates the Echo instance, wiring middleware and routes.
+func setupRouter(log *logger.Logger, filmHandler *catalogo.FilmHandler, healthHandler *health.HealthHandler) *echo.Echo {
+	e := echo.New()
+
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize: 1 << 10, // 1 KB
+	}))
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogMethod:  true,
+		LogURI:     true,
+		LogStatus:  true,
+		LogLatency: true,
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
+			log.Info("request",
+				zap.String("method", v.Method),
+				zap.String("uri", v.URI),
+				zap.Int("status", v.Status),
+				zap.Duration("latency", v.Latency),
+			)
+			return nil
+		},
+	}))
+
+	e.GET("/health", healthHandler.Check)
+	e.GET("/filmes", filmHandler.ListFilms)
+
+	return e
+}
+
+// waitForShutdown blocks until a termination signal arrives, then shuts down
+// the server gracefully within a fixed timeout.
+func waitForShutdown(e *echo.Echo, log *logger.Logger) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -127,6 +159,15 @@ func main() {
 	log.Info("Server stopped")
 }
 
+// safeIntToInt32 converts an int config value to int32, validating the range
+// to avoid a silent overflow conversion (gosec G115).
+func safeIntToInt32(name string, v int) (int32, error) {
+	if v < math.MinInt32 || v > math.MaxInt32 {
+		return 0, fmt.Errorf("%s out of int32 range: %d", name, v)
+	}
+	return int32(v), nil
+}
+
 // createDBPool creates a PostgreSQL connection pool
 func createDBPool(cfg *config.Config, log *logger.Logger) (*pgxpool.Pool, error) {
 	poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseURL)
@@ -134,8 +175,16 @@ func createDBPool(cfg *config.Config, log *logger.Logger) (*pgxpool.Pool, error)
 		return nil, fmt.Errorf("failed to parse database URL: %w", err)
 	}
 
-	poolConfig.MinConns = int32(cfg.PoolMinSize)
-	poolConfig.MaxConns = int32(cfg.PoolMaxSize)
+	minConns, err := safeIntToInt32("PoolMinSize", cfg.PoolMinSize)
+	if err != nil {
+		return nil, err
+	}
+	maxConns, err := safeIntToInt32("PoolMaxSize", cfg.PoolMaxSize)
+	if err != nil {
+		return nil, err
+	}
+	poolConfig.MinConns = minConns
+	poolConfig.MaxConns = maxConns
 	poolConfig.MaxConnLifetime = time.Minute * 15
 	poolConfig.MaxConnIdleTime = time.Minute * 5
 	poolConfig.ConnConfig.ConnectTimeout = cfg.PoolTimeout
@@ -159,14 +208,21 @@ func runMigrations(databaseURL string, log *logger.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
 	}
-	defer m.Close()
+	defer func() {
+		if sourceErr, dbErr := m.Close(); sourceErr != nil || dbErr != nil {
+			log.Warn("failed to close migration instance",
+				zap.Error(sourceErr),
+				zap.NamedError("database_error", dbErr),
+			)
+		}
+	}()
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	version, dirty, err := m.Version()
-	if err == migrate.ErrNilVersion {
+	if errors.Is(err, migrate.ErrNilVersion) {
 		log.Info("No migrations applied")
 		return nil
 	}

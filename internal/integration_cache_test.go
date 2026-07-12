@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package internal
@@ -31,8 +32,6 @@ func TestCacheHitMiss_FirstRequestMisses(t *testing.T) {
 
 	redisURL, redisContainer := setupTestRedis(t, ctx)
 	defer redisContainer.Terminate(ctx)
-
-	time.Sleep(time.Second)
 
 	// Setup database
 	pool, err := pgxpool.New(ctx, dbDSN)
@@ -114,8 +113,6 @@ func TestCacheHitMiss_SecondRequestHits(t *testing.T) {
 	redisURL, redisContainer := setupTestRedis(t, ctx)
 	defer redisContainer.Terminate(ctx)
 
-	time.Sleep(time.Second)
-
 	// Setup database
 	pool, err := pgxpool.New(ctx, dbDSN)
 	if err != nil {
@@ -191,8 +188,6 @@ func TestCacheTTLRespected(t *testing.T) {
 
 	redisURL, redisContainer := setupTestRedis(t, ctx)
 	defer redisContainer.Terminate(ctx)
-
-	time.Sleep(time.Second)
 
 	// Setup database
 	pool, err := pgxpool.New(ctx, dbDSN)

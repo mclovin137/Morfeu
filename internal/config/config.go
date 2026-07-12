@@ -9,14 +9,14 @@ import (
 
 // Config holds application configuration loaded from environment variables
 type Config struct {
-	DatabaseURL     string
-	RedisURL        string
-	LogLevel        string
-	AppPort         string
-	CacheTTL        time.Duration
-	PoolMinSize     int
-	PoolMaxSize     int
-	PoolTimeout     time.Duration
+	DatabaseURL string
+	RedisURL    string
+	LogLevel    string
+	AppPort     string
+	CacheTTL    time.Duration
+	PoolMinSize int
+	PoolMaxSize int
+	PoolTimeout time.Duration
 }
 
 // LoadConfig loads configuration from environment variables with defaults
