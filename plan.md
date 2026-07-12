@@ -4,19 +4,19 @@
 
 ## Estado corrente (2026-07-12)
 
-**Task 0002 — Outbox + RabbitMQ + worker idempotente (E0b): INICIADA — status: não iniciada a implementação; próximo passo = PRD** (branch `feature/0002-outbox-rabbitmq`, recriada a partir da main pós-0004 — o commit antigo `84a4b50` com o rascunho pré-refinamento foi descartado, superseded pelo reescopo da cerimônia; task `docs/tasks/0002-outbox-rabbitmq.md`; PRD `docs/prd/0002-outbox-rabbitmq.md` a criar just-in-time consumindo `docs/refinamentos/E0-walking-skeleton.md` §"Task E0b" + **ADR 0007**, sem nova rodada de agentes — §6.2.5).
+**Task 0002 — Outbox + RabbitMQ: lado produtor (E0b, parte 1/2): PRD ativo; implementação não iniciada** (branch `feature/0002-outbox-rabbitmq`, recriada a partir da main pós-0004 — rascunho antigo `84a4b50` descartado, superseded pelo reescopo da cerimônia; task `docs/tasks/0002-outbox-rabbitmq.md`; **PRD `docs/prd/0002-outbox-rabbitmq.md`** criado 2026-07-12 just-in-time consumindo o refinamento §"Task E0b" + **ADR 0007**, sem nova rodada de agentes — §6.2.5).
 
-**Objetivo:** provar o caminho assíncrono do walking skeleton — `catalogo.filme_criado` atravessa outbox transacional (`Enqueue(tx, evt)` + relay com `FOR UPDATE SKIP LOCKED` + confirms síncronos) → RabbitMQ (topic `morfeu.events`, quorum queue, `x-delivery-limit=3`, DLQ) → consumidor idempotente (dedup em `processed_messages` na mesma TX do efeito) com graceful shutdown. UM evento, UMA queue; emissão por subcomando CLI na mesma TX via service real. ~15–17 arquivos; deps novas: `amqp091-go` + `otel/propagation` (registrar no lib.md antes do primeiro import).
+**Divisão da E0b (decisão de abertura do PRD, roles.md §6.3):** a task inteira estimou ~32–33 arquivos reais no diff (gerados do sqlc + go.mod/go.sum + compose + testes + docs de controle, todos contados pela auditoria) > limite de 30 — a estimativa 13–17 do refinamento não contava gerados/controle. **0002 = produtor** (outbox transacional + relay com confirms síncronos + cliente/topologia RabbitMQ + emissão via subcomando CLI na mesma TX, ~27 arquivos); **0005 = consumidor** (runtime + dedup `processed_messages` na mesma TX + DLQ exercitada + projeção + readiness RabbitMQ + migration 003; reservada no índice). Exigências do refinamento seguem válidas, distribuídas; o walking skeleton assíncrono fecha na 0005. Shell SPA passa a **0006 candidata**.
 
-### Plano da task 0002 (status: não iniciada)
+### Plano da task 0002 (status: PRD pronto; implementação não iniciada — plano detalhado no PRD)
 
-1. PRD 0002 (`criar-prd`, just-in-time) — consolidar exigências do refinamento + ADR 0007; especificar comportamento durante desconexão do broker e ownership das tabelas de plataforma.
-2. Migrations 002/003 (`criar-migration`): `outbox_events`, `processed_messages`.
-3. Compose: RabbitMQ 3.13-management-alpine (watermark ~768MB, disk_free_limit ~512MB, 15672 só localhost, healthcheck + `service_healthy`); `.env.example`.
-4. Plataforma: `internal/outbox/` (enqueue + relay + confirms + reconexão) e `internal/broker/` (cliente, topologia idempotente, consumer runtime, wrapper de dedup); depguard: domínio ↛ `amqp091-go`.
-5. Domínio: emissão no service do catálogo (`WithTx`) + subcomando CLI; handler do evento no consumidor; modos `-mode=api|worker|all` no main.
-6. Envelope com `traceparent` (W3C, pacote leve `otel/propagation`); readiness com RabbitMQ sem quebrar contrato E0a; contador `outbox_pendentes`.
-7. Testes de integração (testcontainers RabbitMQ real, `-race`, goleak): CA01–CA09 do task doc.
+1. ~~PRD 0002~~ — feito (2026-07-12), com a divisão E0b registrada; skills de apoio: `golang-concurrency`, `golang-database`.
+2. `lib.md` + deps novas (`amqp091-go`, `otel/propagation`, `goleak` — CVE checada) antes do primeiro import.
+3. Migration 002 (`outbox_events`, índice parcial em pendentes) via `criar-migration`.
+4. `internal/outbox/` (Enqueue/Pendentes + relay com SKIP LOCKED e confirms) + `internal/broker/` (dial, NotifyClose+backoff, `DeclararTopologia`, publish+confirm); sqlc.yaml com bloco outbox.
+5. `CreateFilm` no service do catálogo (`WithTx` + Enqueue) + subcomando CLI `criar-filme`; relay só em `-mode=worker|all`.
+6. Compose RabbitMQ (watermark ~768MB, disk_free ~512MB, 15672 localhost, healthcheck) + `.env.example`; depguard `amqp091-go` só em `internal/broker`.
+7. Testes de integração (testcontainers PG+RabbitMQ, `-race`, goleak, wait por log, 90–120s): CA01–CA09 do PRD.
 8. Gate: gitleaks pré-push → push → PR → CI verde → passe único de julgamento → merge.
 
 ---
