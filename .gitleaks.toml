@@ -1,0 +1,9 @@
+# Configuração do gitleaks para o gate de secrets (CI + pré-push — roles.md §6.4).
+# Mantém TODAS as regras default; só isenta falsos positivos já auditados.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Exemplo didático de API key em skill vendorizada — falso positivo conhecido, registrado nas auditorias de 2026-07-07 e 2026-07-10"
+paths = ['''\.claude/skills/api-design/SKILL\.md''']

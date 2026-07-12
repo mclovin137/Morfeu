@@ -1,0 +1,18 @@
+# Dependabot — supply chain do PRD 0004 (RNF01/CA05): mantém atualizados os
+# pins de actions (SHA), módulos Go e base images do Dockerfile.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
