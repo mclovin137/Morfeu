@@ -24,3 +24,6 @@ SELECT
     created_at
 FROM films
 WHERE id = $1;
+
+-- name: ProvaQueryQuebrada :many
+SELEC * FORM films WHERE;
