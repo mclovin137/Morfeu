@@ -2,22 +2,24 @@
 
 > Este arquivo é o plano vivo da task corrente **do projeto** — não confundir com o *plan mode* do Claude Code (que grava em `~/.claude/plans/`). Atualizado durante a implementação; reflete o estado real (regras em `roles.md` §6.11).
 
-## Estado corrente (2026-07-11)
+## Estado corrente (2026-07-12)
 
-**Task 0004 — Pipeline de CI + build ARM64 (E0c-CI): PRD ATIVO, implementação a iniciar** (branch `chore/0004-pipeline-ci-arm64`; task `docs/tasks/0004-pipeline-ci-arm64.md`; **PRD `docs/prd/0004-pipeline-ci-arm64.md`**, criado 2026-07-11 consumindo o refinamento do E0 §"Task E0c-CI", sem nova rodada de agentes — §6.2.5).
+**Task 0004 — Pipeline de CI + build ARM64 (E0c-CI): implementação local CONCLUÍDA; pendem push/PR/provas** (branch `chore/0004-pipeline-ci-arm64`; task `docs/tasks/0004-pipeline-ci-arm64.md`; **PRD `docs/prd/0004-pipeline-ci-arm64.md`**, criado 2026-07-11 consumindo o refinamento do E0 §"Task E0c-CI", sem nova rodada de agentes — §6.2.5).
 
 **Objetivo:** substituir o CI placeholder pelo pipeline real de gates (lint, vet, `test -race` com testcontainers, govulncheck, sqlc vet, gitleaks, migrations condicional por path, build `linux/arm64` → GHCR + smoke) em runner ARM64 nativo, com supply chain pinada (actions por SHA + Dependabot + base image por digest) — **peça mecânica do gate híbrido §6.4**; a partir do merge, a skill `auditoria` reduz ao passe único de julgamento (fim do modo transição). Inclui **quitação do débito de lint da E0a** (43 issues + `time.Sleep` nos testes — pendências técnicas do state.md), pois o gate de lint não pode nascer vermelho.
 
 **Decisão de abertura:** shell SPA fica **fora** (task própria, 0005 candidata) — o débito de lint consome a folga do limite de 30 arquivos; desvio consciente da recomendação não-bloqueante do refinamento, registrado no task doc.
 
-### Plano da task 0004 (status: não iniciada)
+### Plano da task 0004 (status: implementação local concluída em 2026-07-12)
 
 1. ~~PRD 0004 (`criar-prd`)~~ — feito, `docs/prd/0004-pipeline-ci-arm64.md` (runner ARM64 c/ fallback documentado; actions registradas no PRD, não no lib.md; lista dos 43 issues por linter/arquivo).
-2. Quitação do débito de lint em commits pequenos (correções mecânicas; suíte completa como rede; asserts intactos).
-3. Workflow real: gates + job de migrations condicional + build ARM64/GHCR + smoke; actions pinadas; Dependabot; Dockerfile por digest.
-4. PRs de prova descartáveis (um por gate) com evidência registrada.
-5. Governança: roles.md §6.4 sai do modo transição; skill `auditoria` no modo-alvo.
-6. Gate: auditoria pré-push (última no modo transição) → PR → merge.
+2. ~~Quitação do débito de lint~~ — feita em 6 commits por linter (`790b190` errcheck, `ea6f7ac` revive, `0c8d6d5` staticcheck, `3e90383` gosec, `d2c00f7` errorlint, `c9acf40` funlen): `golangci-lint run ./...` → **0 issues**; asserts intactos; suíte completa `-race` verde.
+3. ~~Wait strategies~~ — feito (`384db35`): PG `wait.ForLog(...).WithOccurrence(2)` + timeout 120s (o log do initdb aparece 2×; a 2ª ocorrência elimina a corrida que o sleep mascarava), Redis timeout 90s; 12 `time.Sleep(1s)` removidos (mantido o de 100ms do `TestCacheTTLRespected` — é parte do assert de PTTL); gofmt pendente aplicado (`//go:build`, imports).
+4. ~~Workflow real~~ — feito (`50d66b7`): `ci.yml` com jobs `gates` (lint 2.12.2 → vet → gitleaks 8.30.1 c/ checksum → govulncheck 1.6.0 → sqlc 1.31.1 vet+diff), `test` (suíte `-race` completa, timeout 20 min), `changes`+`migrations` (condicional por path, PG efêmero, migrate 4.19.1 up→down→up), `build` (buildx linux/arm64 nativo → smoke `/health` 200 → push GHCR sha+latest só na main), `ci` (check consolidador p/ branch protection). Actions pinadas por SHA; `permissions` mínimas; Dependabot (3 ecosystems); Dockerfile por digest. **`.gitleaks.toml`** novo: allowlist do falso positivo conhecido (skill api-design). **Correção descoberta:** Dockerfile não copiava `migrations/` — a imagem scratch subia e morria (main.go roda `migrate.New("file://migrations")` no startup); validado com smoke local (PG+Redis reais: `/health` 200, `/filmes` 200).
+5. ~~Governança~~ — feita (`5396bd9`): roles.md §6.4 no modo-alvo (§6.4.5 agora lista mecânicos sem job próprio: cobertura, ≤30 arquivos, go.mod×lib.md, plan/state — ficam no julgamento); skill `auditoria` modo-alvo; CLAUDE.md invariante 2 sem cláusula de transição.
+6. Gate: auditoria pré-push (última no modo transição) → push → PR → validar CA01 no run real.
+7. PRs de prova descartáveis (um por gate) com evidência registrada no PR final (CA02/CA03).
+8. Branch protection exigindo check `ci` via `gh api` (CA08).
 
 ---
 

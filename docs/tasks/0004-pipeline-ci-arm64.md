@@ -1,9 +1,9 @@
 # Task 0004 — Pipeline de CI + build ARM64 (E0c-CI)
 
 - **Data:** 2026-07-11
-- **Status:** pendente
+- **Status:** em andamento (implementação local concluída em 2026-07-12; pendem push, PR, PRs de prova e branch protection)
 - **Branch:** `chore/0004-pipeline-ci-arm64`
-- **PRD:** docs/prd/0004-pipeline-ci-arm64.md — criar antes de implementar
+- **PRD:** docs/prd/0004-pipeline-ci-arm64.md — ativo (criado 2026-07-11)
 - **Item do roadmap:** E0 (walking skeleton), entrega **E0c-CI** — nova ordem aprovada pelo usuário em 2026-07-11; exigências em `docs/refinamentos/E0-walking-skeleton.md` §"Task E0c-CI"
 
 > Numeração: **0002 permanece reservada para a E0b** (outbox + RabbitMQ). Esta task recebe 0004.
