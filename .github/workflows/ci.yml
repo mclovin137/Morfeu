@@ -68,7 +68,9 @@ jobs:
 
       - name: sqlc vet + código gerado sem diff
         run: |
-          go install "github.com/sqlc-dev/sqlc/cmd/sqlc@${SQLC_VERSION}"
+          # sqlc 1.31.x exige Go >= 1.26 p/ compilar; GOTOOLCHAIN=auto baixa o
+          # toolchain só para a ferramenta (o projeto continua no 1.25.x).
+          GOTOOLCHAIN=auto go install "github.com/sqlc-dev/sqlc/cmd/sqlc@${SQLC_VERSION}"
           sqlc vet
           sqlc diff
 
@@ -152,7 +154,7 @@ jobs:
 
       - name: sqlc vet (schema recém-migrado)
         run: |
-          go install "github.com/sqlc-dev/sqlc/cmd/sqlc@${SQLC_VERSION}"
+          GOTOOLCHAIN=auto go install "github.com/sqlc-dev/sqlc/cmd/sqlc@${SQLC_VERSION}"
           sqlc vet
 
   # Build linux/arm64 nativo (sem QEMU) + smoke da imagem; push no GHCR só na main
