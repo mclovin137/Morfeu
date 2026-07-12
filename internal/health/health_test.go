@@ -25,7 +25,10 @@ func setupTestDBForHealth(ctx context.Context, t *testing.T) (*pgxpool.Pool, tes
 			"POSTGRES_PASSWORD": "postgres",
 			"POSTGRES_DB":       "morfeu_test",
 		},
-		WaitingFor: wait.ForLog("database system is ready to accept connections"),
+		// O log aparece duas vezes (initdb + processo final) — esperar a 2ª ocorrência
+		// evita conectar durante o restart interno do initdb.
+		WaitingFor: wait.ForLog("database system is ready to accept connections").
+			WithOccurrence(2).WithStartupTimeout(120 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -69,7 +72,7 @@ func setupTestRedisForHealth(ctx context.Context, t *testing.T) (*redis.Client, 
 	req := testcontainers.ContainerRequest{
 		Image:        "redis:7-alpine",
 		ExposedPorts: []string{"6379/tcp"},
-		WaitingFor:   wait.ForLog("Ready to accept connections"),
+		WaitingFor:   wait.ForLog("Ready to accept connections").WithStartupTimeout(90 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -127,8 +130,6 @@ func TestHealthEndpoint_AllOK(t *testing.T) {
 			t.Logf("failed to terminate redis container: %v", err)
 		}
 	}()
-
-	time.Sleep(time.Second)
 
 	// Create health handler
 	handler := NewHealthHandler(pool, redisClient)
@@ -188,8 +189,6 @@ func TestHealthEndpoint_RedisDown(t *testing.T) {
 	}()
 	defer pool.Close()
 
-	time.Sleep(time.Second)
-
 	// Use unreachable Redis
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: "localhost:9999",
@@ -248,8 +247,6 @@ func TestHealthEndpoint_DBDown(t *testing.T) {
 			t.Logf("failed to terminate redis container: %v", err)
 		}
 	}()
-
-	time.Sleep(time.Second)
 
 	// Use unreachable DB pool
 	pool, err := pgxpool.New(ctx, "postgres://user:pass@localhost:9999/db")

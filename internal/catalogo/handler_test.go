@@ -46,7 +46,10 @@ func setupTestDBForCatalogo(ctx context.Context, t *testing.T) (*pgxpool.Pool, t
 			"POSTGRES_PASSWORD": "postgres",
 			"POSTGRES_DB":       "morfeu_test",
 		},
-		WaitingFor: wait.ForLog("database system is ready to accept connections"),
+		// O log aparece duas vezes (initdb + processo final) — esperar a 2ª ocorrência
+		// evita conectar durante o restart interno do initdb.
+		WaitingFor: wait.ForLog("database system is ready to accept connections").
+			WithOccurrence(2).WithStartupTimeout(120 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -90,7 +93,7 @@ func setupTestRedisForCatalogo(ctx context.Context, t *testing.T) (*redis.Client
 	req := testcontainers.ContainerRequest{
 		Image:        "redis:7-alpine",
 		ExposedPorts: []string{"6379/tcp"},
-		WaitingFor:   wait.ForLog("Ready to accept connections"),
+		WaitingFor:   wait.ForLog("Ready to accept connections").WithStartupTimeout(90 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -178,8 +181,6 @@ func TestListFilmsHTTP_Integration(t *testing.T) {
 			t.Logf("failed to close redis client: %v", err)
 		}
 	}()
-
-	time.Sleep(time.Second)
 
 	if err := seedTestFilms(ctx, pool); err != nil {
 		t.Fatalf("Failed to seed films: %v", err)

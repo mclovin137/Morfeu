@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package internal
@@ -9,9 +10,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"go.uber.org/zap"
 
 	"github.com/mclovin137/morfeu/internal/cache"
 	"github.com/mclovin137/morfeu/internal/catalogo"
@@ -28,7 +29,10 @@ func setupTestDB(t *testing.T, ctx context.Context) (string, testcontainers.Cont
 			"POSTGRES_PASSWORD": "postgres",
 			"POSTGRES_DB":       "morfeu_test",
 		},
-		WaitingFor: wait.ForLog("database system is ready to accept connections"),
+		// O log aparece duas vezes (initdb + processo final) — esperar a 2ª ocorrência
+		// evita conectar durante o restart interno do initdb.
+		WaitingFor: wait.ForLog("database system is ready to accept connections").
+			WithOccurrence(2).WithStartupTimeout(120 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -60,7 +64,7 @@ func setupTestRedis(t *testing.T, ctx context.Context) (string, testcontainers.C
 	req := testcontainers.ContainerRequest{
 		Image:        "redis:7-alpine",
 		ExposedPorts: []string{"6379/tcp"},
-		WaitingFor:   wait.ForLog("Ready to accept connections"),
+		WaitingFor:   wait.ForLog("Ready to accept connections").WithStartupTimeout(90 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -132,8 +136,6 @@ func TestDatabaseConnection(t *testing.T) {
 	dsn, container := setupTestDB(t, ctx)
 	defer container.Terminate(ctx)
 
-	time.Sleep(time.Second)
-
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		t.Fatalf("Failed to create pool: %v", err)
@@ -155,8 +157,6 @@ func TestMigrationsUpDownUpIdempotent(t *testing.T) {
 	ctx := context.Background()
 	dsn, container := setupTestDB(t, ctx)
 	defer container.Terminate(ctx)
-
-	time.Sleep(time.Second)
 
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
@@ -234,8 +234,6 @@ func TestCacheHitMissWithRedis(t *testing.T) {
 	redisURL, redisContainer := setupTestRedis(t, ctx)
 	defer redisContainer.Terminate(ctx)
 
-	time.Sleep(time.Second)
-
 	// Setup database
 	pool, err := pgxpool.New(ctx, dbDSN)
 	if err != nil {
@@ -299,8 +297,6 @@ func TestGracefulDegradationRedisUnavailable(t *testing.T) {
 	dbDSN, dbContainer := setupTestDB(t, ctx)
 	defer dbContainer.Terminate(ctx)
 
-	time.Sleep(time.Second)
-
 	// Setup database
 	pool, err := pgxpool.New(ctx, dbDSN)
 	if err != nil {
@@ -348,8 +344,6 @@ func TestListFilmsE2E_FullStack(t *testing.T) {
 	// Start Redis container
 	redisURL, redisContainer := setupTestRedis(t, ctx)
 	defer redisContainer.Terminate(ctx)
-
-	time.Sleep(time.Second)
 
 	// Setup database
 	pool, err := pgxpool.New(ctx, dbDSN)
