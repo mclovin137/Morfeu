@@ -1,0 +1,2 @@
+# Config de exemplo — PR de prova do gate de secrets (task 0004). Chave DUMMY/INVÁLIDA.
+api_key = "mrf8kD92mXq7Lp0Zw3Vt6Yb1Nc5Ra9Se"
