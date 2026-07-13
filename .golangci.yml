@@ -33,6 +33,21 @@ linters:
     nestif:
       min-complexity: 5
 
+    # Comentários deste repo são em pt-BR; o dicionário US do misspell flagra
+    # palavras portuguesas parecidas com typos ingleses. Lista mínima, só o
+    # que já foi flagrado — não desabilitar o linter (ele segue pegando typos
+    # reais em identificadores/strings em inglês).
+    misspell:
+      ignore-rules:
+        - exponencial
+        - argumentos
+        - momento
+        - intencional
+        - excepcional
+        # "conversão" é tokenizado como "convers" (o "ã" quebra a palavra)
+        - convers
+        - intervalos
+
     # Arquivos gerados (sqlc) já são excluídos por linters.exclusions.generated
     # (a antiga chave revive.ignore-generated-header não existe no schema v2 —
     # o `config verify` da action rejeita o arquivo inteiro).
@@ -81,11 +96,26 @@ linters:
             - go.uber.org/zap
             - github.com/mclovin137/morfeu/internal/cache
             - github.com/mclovin137/morfeu/internal/catalogo/db
+            - github.com/mclovin137/morfeu/internal/outbox
           deny:
             - pkg: "github.com/jackc/pgx/v5"
-              desc: "domínio catalogo não importa driver pgx direto — depende do DAO gerado internal/catalogo/db"
+              desc: "domínio catalogo não importa driver pgx direto — depende do DAO gerado internal/catalogo/db ou dos aliases de internal/outbox (Pool/Tx)"
             - pkg: "github.com/redis/go-redis/v9"
               desc: "domínio catalogo não importa driver redis direto — depende de internal/cache"
+            - pkg: "github.com/rabbitmq/amqp091-go"
+              desc: "domínio catalogo não importa o cliente AMQP — publica só via internal/outbox.Enqueue (RF01, ADR 0003)"
+
+        # Fronteira do ADR 0003/RNF03 do PRD 0002: amqp091-go só é importável em
+        # internal/broker. Testes ficam fora (CA02 exige consumo AMQP cru dentro
+        # do teste de integração para verificar o envelope publicado, RF05).
+        broker-boundary:
+          files:
+            - "!**/internal/broker/*.go"
+            - "!$test"
+          list-mode: lax
+          deny:
+            - pkg: "github.com/rabbitmq/amqp091-go"
+              desc: "amqp091-go só é importável em internal/broker (ADR 0003, RNF03 do PRD 0002)"
 
   exclusions:
     generated: strict
