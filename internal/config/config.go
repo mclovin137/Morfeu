@@ -11,6 +11,7 @@ import (
 type Config struct {
 	DatabaseURL string
 	RedisURL    string
+	RabbitMQURL string
 	LogLevel    string
 	AppPort     string
 	CacheTTL    time.Duration
@@ -24,6 +25,10 @@ func LoadConfig() (*Config, error) {
 	cfg := &Config{
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/morfeu"),
 		RedisURL:    getEnv("REDIS_URL", "redis://localhost:6379/0"),
+		// Sem default de credencial real (RNF01 do PRD 0002 — nunca guest/guest
+		// hardcoded); o default aqui é só para dev local com o docker-compose
+		// deste repo, cujo usuário/senha vêm de .env.docker-compose (gitignored).
+		RabbitMQURL: getEnv("RABBITMQ_URL", "amqp://morfeu:morfeu@localhost:5672/"),
 		LogLevel:    getEnv("LOG_LEVEL", "info"),
 		AppPort:     getEnv("APP_PORT", "8080"),
 		PoolMinSize: getEnvInt("POOL_MIN_SIZE", 5),
@@ -53,6 +58,9 @@ func (c *Config) Validate() error {
 	}
 	if c.RedisURL == "" {
 		return fmt.Errorf("REDIS_URL is required")
+	}
+	if c.RabbitMQURL == "" {
+		return fmt.Errorf("RABBITMQ_URL is required")
 	}
 	if c.AppPort == "" {
 		return fmt.Errorf("APP_PORT is required")

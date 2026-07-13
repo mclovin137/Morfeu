@@ -57,7 +57,7 @@ func TestCacheHitMiss_FirstRequestMisses(t *testing.T) {
 	redisClient.FlushDB(ctx)
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := catalogo.NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(db.New(pool), pool, cacheLayer, zap.NewNop())
 
 	// First request should miss cache
 	start := time.Now()
@@ -137,7 +137,7 @@ func TestCacheHitMiss_SecondRequestHits(t *testing.T) {
 	redisClient.FlushDB(ctx)
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := catalogo.NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(db.New(pool), pool, cacheLayer, zap.NewNop())
 
 	// First request (cache miss)
 	_, err = svc.ListFilms(ctx)
@@ -213,7 +213,7 @@ func TestCacheTTLRespected(t *testing.T) {
 	redisClient.FlushDB(ctx)
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := catalogo.NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
+	svc := catalogo.NewFilmService(db.New(pool), pool, cacheLayer, zap.NewNop())
 
 	// First request to populate cache
 	_, err = svc.ListFilms(ctx)
