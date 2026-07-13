@@ -17,7 +17,7 @@ func TestNewFilmService(t *testing.T) {
 
 	// Test that FilmService can be instantiated with nil db/cache
 	// Real tests will use testcontainers
-	service := NewFilmService(nil, nil, logger)
+	service := NewFilmService(nil, nil, nil, logger)
 	if service == nil {
 		t.Fatal("FilmService should not be nil")
 	}
@@ -35,7 +35,7 @@ func TestFilmServiceFields(t *testing.T) {
 		}
 	}()
 
-	service := NewFilmService(nil, nil, logger)
+	service := NewFilmService(nil, nil, nil, logger)
 
 	if service.logger != logger {
 		t.Error("Logger not properly assigned")

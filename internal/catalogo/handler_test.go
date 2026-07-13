@@ -187,7 +187,7 @@ func TestListFilmsHTTP_Integration(t *testing.T) {
 	}
 
 	cacheLayer := cache.NewRedisCache(redisClient, zap.NewNop())
-	svc := NewFilmService(db.New(pool), cacheLayer, zap.NewNop())
+	svc := NewFilmService(db.New(pool), pool, cacheLayer, zap.NewNop())
 	h := NewFilmHandler(svc)
 
 	e := echo.New()

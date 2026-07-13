@@ -210,11 +210,15 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Smoke — imagem sobe com PG/Redis reais e responde /health 200
+        # -mode=api: o smoke valida boot + migrations + /health; a partir da
+        # task 0002 o modo default (all) exige RabbitMQ no startup (fail-fast
+        # do relay), e o broker não faz parte da infra deste smoke — o caminho
+        # do relay é coberto pela suíte de integração no job test.
         run: |
           docker run -d --name smoke --network host \
             -e DATABASE_URL="postgres://postgres:postgres@localhost:5432/morfeu?sslmode=disable" \
             -e REDIS_URL="localhost:6379" \
-            "${IMAGE}:sha-${GITHUB_SHA}"
+            "${IMAGE}:sha-${GITHUB_SHA}" -mode=api
           ok=""
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health || true)
