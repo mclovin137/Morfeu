@@ -35,9 +35,29 @@ services:
     networks:
       - morfeu-network
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: morfeu-rabbitmq
+    env_file: .env.docker-compose
+    ports:
+      - "5672:5672"
+      # UI de management só em localhost (RNF02) — nunca exposta na rede.
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - morfeu-rabbitmq:/var/lib/rabbitmq
+      - ./configs/rabbitmq.conf:/etc/rabbitmq/conf.d/10-morfeu.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - morfeu-network
+
 volumes:
   morfeu-postgres:
   morfeu-redis:
+  morfeu-rabbitmq:
 
 networks:
   morfeu-network:
