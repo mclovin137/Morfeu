@@ -2,22 +2,24 @@
 
 > Este arquivo é o plano vivo da task corrente **do projeto** — não confundir com o *plan mode* do Claude Code (que grava em `~/.claude/plans/`). Atualizado durante a implementação; reflete o estado real (regras em `roles.md` §6.11).
 
-## Estado corrente (2026-07-12)
+## Estado corrente (2026-07-13)
 
-**Task 0002 — Outbox + RabbitMQ: lado produtor (E0b, parte 1/2): PRD ativo; implementação não iniciada** (branch `feature/0002-outbox-rabbitmq`, recriada a partir da main pós-0004 — rascunho antigo `84a4b50` descartado, superseded pelo reescopo da cerimônia; task `docs/tasks/0002-outbox-rabbitmq.md`; **PRD `docs/prd/0002-outbox-rabbitmq.md`** criado 2026-07-12 just-in-time consumindo o refinamento §"Task E0b" + **ADR 0007**, sem nova rodada de agentes — §6.2.5).
+**Task 0002 — Outbox + RabbitMQ: lado produtor (E0b, parte 1/2): implementação COMPLETA na árvore de trabalho; validação local verde; commits em andamento** (branch `feature/0002-outbox-rabbitmq`, recriada a partir da main pós-0004 — rascunho antigo `84a4b50` descartado, superseded pelo reescopo da cerimônia; task `docs/tasks/0002-outbox-rabbitmq.md`; **PRD `docs/prd/0002-outbox-rabbitmq.md`** criado 2026-07-12 just-in-time consumindo o refinamento §"Task E0b" + **ADR 0007**, sem nova rodada de agentes — §6.2.5).
+
+**Checkpoint de meio (2026-07-13):** código do produtor completo (`internal/broker` cliente com confirms+reconexão, `internal/outbox` WithTx/Enqueue/Pendentes + relay SKIP LOCKED, `CreateFilm`+CLI `criar-filme`+modos api|worker|all, compose RabbitMQ com watermarks, depguard broker-boundary). **2 correções de teste nesta sessão**: (a) CA02 comparava payload byte a byte, mas a coluna JSONB normaliza a serialização no round-trip → comparação semântica (unmarshal+DeepEqual); (b) CA03 falhava porque stop/start do container remapeia a porta efêmera do host (verificado empiricamente: 32797→32798) e o client reconectava para sempre na URL morta → porta de host FIXA via `WithHostConfigModifier` (bind 0.0.0.0: a suíte roda dentro do container golang e alcança o broker via gateway da bridge), dep test-only `moby/moby/api` promovida a direta e registrada no lib.md (OSV limpo 2026-07-13). **Lint 0 issues** após: ignore-rules do misspell p/ palavras pt-BR (11 falsos positivos), revive indent-error-flow no client.go, gocognit do runServer resolvido extraindo `startRelay`. **CA08 provado**: import proposital de amqp091-go em catalogo bloqueado pela regra `broker-boundary` e revertido. Suíte outbox verde com `-race` (28.6s); regressão completa final em andamento.
 
 **Divisão da E0b (decisão de abertura do PRD, roles.md §6.3):** a task inteira estimou ~32–33 arquivos reais no diff (gerados do sqlc + go.mod/go.sum + compose + testes + docs de controle, todos contados pela auditoria) > limite de 30 — a estimativa 13–17 do refinamento não contava gerados/controle. **0002 = produtor** (outbox transacional + relay com confirms síncronos + cliente/topologia RabbitMQ + emissão via subcomando CLI na mesma TX, ~27 arquivos); **0005 = consumidor** (runtime + dedup `processed_messages` na mesma TX + DLQ exercitada + projeção + readiness RabbitMQ + migration 003; reservada no índice). Exigências do refinamento seguem válidas, distribuídas; o walking skeleton assíncrono fecha na 0005. Shell SPA passa a **0006 candidata**.
 
-### Plano da task 0002 (status: PRD pronto; implementação não iniciada — plano detalhado no PRD)
+### Plano da task 0002 (status: itens 1–7 feitos; falta commitar + gate)
 
 1. ~~PRD 0002~~ — feito (2026-07-12), com a divisão E0b registrada; skills de apoio: `golang-concurrency`, `golang-database`.
-2. `lib.md` + deps novas (`amqp091-go`, `otel/propagation`, `goleak` — CVE checada) antes do primeiro import.
-3. Migration 002 (`outbox_events`, índice parcial em pendentes) via `criar-migration`.
-4. `internal/outbox/` (Enqueue/Pendentes + relay com SKIP LOCKED e confirms) + `internal/broker/` (dial, NotifyClose+backoff, `DeclararTopologia`, publish+confirm); sqlc.yaml com bloco outbox.
-5. `CreateFilm` no service do catálogo (`WithTx` + Enqueue) + subcomando CLI `criar-filme`; relay só em `-mode=worker|all`.
-6. Compose RabbitMQ (watermark ~768MB, disk_free ~512MB, 15672 localhost, healthcheck) + `.env.example`; depguard `amqp091-go` só em `internal/broker`.
-7. Testes de integração (testcontainers PG+RabbitMQ, `-race`, goleak, wait por log, 90–120s): CA01–CA09 do PRD.
-8. Gate: gitleaks pré-push → push → PR → CI verde → passe único de julgamento → merge.
+2. ~~`lib.md` + deps novas (`amqp091-go`, `otel/propagation`, `goleak` — CVE checada) antes do primeiro import~~ — feito (`f15fb52`); +`moby/moby/api` e `testcontainers modules/rabbitmq` (test-only) registrados 2026-07-13.
+3. ~~Migration 002 (`outbox_events`, índice parcial em pendentes) via `criar-migration`~~ — feito (`30816f5`).
+4. ~~`internal/outbox/` + `internal/broker/`; sqlc.yaml com bloco outbox~~ — feito (working tree, commit pendente).
+5. ~~`CreateFilm` no service do catálogo (`WithTx` + Enqueue) + subcomando CLI `criar-filme`; relay só em `-mode=worker|all`~~ — feito (working tree).
+6. ~~Compose RabbitMQ (watermark ~768MB, disk_free ~512MB, 15672 localhost, healthcheck) + `.env.example`; depguard `amqp091-go` só em `internal/broker`~~ — feito (working tree; CA08 provado com violação proposital revertida).
+7. ~~Testes de integração (testcontainers PG+RabbitMQ, `-race`, goleak, wait por log): CA01–CA09 do PRD~~ — feito; 2 correções (JSONB semântico; porta fixa p/ CA03) — ver checkpoint acima.
+8. Commits em blocos lógicos → gate: gitleaks pré-push → push → PR → CI verde → passe único de julgamento → merge.
 
 ---
 
